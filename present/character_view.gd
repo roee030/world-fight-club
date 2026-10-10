@@ -145,12 +145,39 @@ func show_state(s: PackedInt32Array, i: int, moveset) -> void:
 		L.S_KO:
 			_sample("Death01", minf(2.3, sf * 0.04))
 			guard = false
+		L.S_PARRY:
+			# Parry: open-palm guard pushed forward.
+			_play("Idle")
+			_set_target("hand_l", Vector3(0.08, 1.35, 0.5))
+			_set_target("hand_r", Vector3(-0.1, 1.42, 0.45))
+			arm_l = 1.0
+			arm_r = 1.0
+			guard = false
+		L.S_RUSH:
+			_play("Sprint", 1.4)
+		L.S_THROW:
+			_play("Idle")
+			_set_target("hand_l", Vector3(0.12, 1.3, 0.62))
+			_set_target("hand_r", Vector3(-0.12, 1.3, 0.62))
+			arm_l = 1.0
+			arm_r = 1.0
+			guard = false
+		L.S_THROWN:
+			_sample("Hit_Chest", 0.12)
+			guard = false
 		L.S_ATTACK:
 			var m: Dictionary = moveset.moves[s[b + L.F_MOVE]]
 			var posture := int(m.posture)
 			var anim := str(m.anim)
 			var p := _phase(m, sf)   # 0..1 to impact, 1 while active, 1..2 recovering
-			if posture == 0 and anim in ["jab", "cross"]:
+			if anim == "uppercut":
+				# Rising uppercut: rear fist drives from the hip to above the head.
+				_sample("Crouch_Idle" if p < 0.6 else "Idle", 0.0)
+				var low := Vector3(-0.12, 0.9, 0.25)
+				var high := Vector3(-0.05, 2.05, 0.35)
+				_set_target("hand_r", low.lerp(high, minf(p, 1.0)) if p <= 1.0 else high.lerp(low, (p - 1.0) * 0.6))
+				arm_r = 1.0
+			elif posture == 0 and anim in ["jab", "cross"]:
 				var clip := "Punch_Jab" if anim == "jab" else "Punch_Cross"
 				_sample(clip, _warp(clip, m, sf))
 				guard = false

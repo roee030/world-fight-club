@@ -19,6 +19,7 @@ const IN_HP := 32
 const IN_LK := 64
 const IN_HK := 128
 const IN_DRIVE := 256
+const IN_SP := 512          # Easy-mode special button (direction picks the special)
 const BUTTONS := [IN_LP, IN_HP, IN_LK, IN_HK]
 const BUTTON_NAMES := ["LP", "HP", "LK", "HK"]
 
@@ -62,7 +63,29 @@ const F_SUPER := 26         # Super gauge (0..30000, 10000 per bar)
 const F_PUSH_VX := 27       # decaying push-back velocity
 const F_HITS_TAKEN := 28    # hits in the combo this fighter is receiving
 const F_FLAGS := 29
-const FIGHTER := 32
+const F_HIST_POS := 30      # ring index of the input history
+const F_SPECIAL_BUFFER := 31  # buffered special/super move index or -1
+const F_HIST := 32          # HIST_LEN facing-relative numpad directions (ring)
+const HIST_LEN := 24
+const F_SPECIAL_FRAMES := 56
+const F_ARMOR := 57         # armor hits left on the current move
+const F_WALL_USED := 58     # wall splat already used in the combo against this fighter
+const F_RUSH := 59          # frames left of the Drive Rush bonus
+const F_BURNOUT := 60       # 1 while burned out (no Drive actions)
+const F_PROJECTILE_OUT := 61  # 1 while this fighter's projectile is alive
+const F_SUPER_FREEZE := 62  # frames of super flash left (both fighters frozen)
+const FIGHTER := 64
+
+# Projectiles live after the fighter blocks.
+const PROJECTILES := 4
+const P_ACTIVE := 0
+const P_OWNER := 1
+const P_X := 2
+const P_Y := 3
+const P_VX := 4
+const P_LIFE := 5
+const P_MOVE := 6
+const PROJECTILE := 8
 
 # States.
 const S_IDLE := 0
@@ -81,7 +104,11 @@ const S_LAUNCHED := 12      # airborne after a hit (juggle state)
 const S_KNOCKDOWN := 13
 const S_GETUP := 14
 const S_KO := 15
-const STATE_NAMES := ["idle", "walk_f", "walk_b", "crouch", "prejump", "air", "land", "dash", "backdash", "attack", "blockstun", "hitstun", "launched", "knockdown", "getup", "ko"]
+const S_PARRY := 16
+const S_THROW := 17
+const S_THROWN := 18
+const S_RUSH := 19
+const STATE_NAMES := ["idle", "walk_f", "walk_b", "crouch", "prejump", "air", "land", "dash", "backdash", "attack", "blockstun", "hitstun", "launched", "knockdown", "getup", "ko", "parry", "throw", "thrown", "rush"]
 
 # Event stream: groups of 4 ints [kind, fighter, a, b].
 const EV_HIT := 1           # a = move index, b = damage
@@ -93,8 +120,21 @@ const EV_ATTACK := 6        # a = move index (startup began)
 const EV_LAUNCH := 7
 const EV_WALL := 8
 const EV_DASH := 9
+const EV_SUPER := 10        # a = move index (cinematic super flash begins)
+const EV_PARRY := 11        # fighter = parrying fighter, a = 1 perfect
+const EV_THROW := 12        # fighter = thrower
+const EV_TECH := 13
+const EV_PROJECTILE := 14   # a = projectile slot
+const EV_BURNOUT := 15
+const EV_ARMOR := 16
+const EV_SPECIAL := 17      # a = move index (special started; for callouts)
+const EV_RUSH := 18
 const EVENT_SIZE := 4
 
 
 static func base(fighter: int) -> int:
 	return HEADER + fighter * FIGHTER
+
+
+static func projectile_base(s: PackedInt32Array, slot: int) -> int:
+	return HEADER + s[H_FIGHTERS] * FIGHTER + slot * PROJECTILE

@@ -3,39 +3,620 @@
   "schema": 1,
   "moveset": "universal",
   "moves": {
-    "5LP": {"posture": "stand", "button": "LP", "anim": "jab", "startup": 5, "active": 3, "recovery": 10,
-            "hitbox": [3000, 12000, 8000, 2500], "level": "mid", "damage": 300, "hitstun": 15, "blockstun": 11, "hitstop": 6, "pushback": 250,
-            "cancel": {"from": 5, "to": 14, "into": ["5LP", "5HP", "5LK", "5HK", "2HP"]}},
-    "5HP": {"posture": "stand", "button": "HP", "anim": "cross", "startup": 9, "active": 4, "recovery": 18,
-            "hitbox": [3500, 12500, 9500, 3000], "level": "mid", "damage": 700, "hitstun": 22, "blockstun": 15, "hitstop": 9, "pushback": 300,
-            "cancel": {"from": 9, "to": 18, "into": ["5HK"]}},
-    "5LK": {"posture": "stand", "button": "LK", "anim": "kick", "startup": 7, "active": 3, "recovery": 14,
-            "hitbox": [3000, 6000, 8500, 3000], "level": "mid", "damage": 400, "hitstun": 17, "blockstun": 12, "hitstop": 7, "pushback": 280,
-            "cancel": {"from": 7, "to": 15, "into": ["5HP", "5HK"]}},
-    "5HK": {"posture": "stand", "button": "HK", "anim": "kick", "startup": 12, "active": 4, "recovery": 20,
-            "hitbox": [4000, 9000, 10500, 3500], "level": "mid", "damage": 800, "hitstun": 24, "blockstun": 16, "hitstop": 10, "pushback": 450,
-            "properties": ["wall_splat"]},
-    "2LP": {"posture": "crouch", "button": "LP", "anim": "jab", "startup": 4, "active": 3, "recovery": 9,
-            "hitbox": [3000, 7000, 7500, 2500], "level": "mid", "damage": 250, "hitstun": 14, "blockstun": 10, "hitstop": 6, "pushback": 220,
-            "cancel": {"from": 4, "to": 12, "into": ["2LP", "2LK", "5LP", "2HP"]}},
-    "2LK": {"posture": "crouch", "button": "LK", "anim": "kick", "startup": 6, "active": 3, "recovery": 14,
-            "hitbox": [3000, 0, 9000, 2500], "level": "low", "damage": 300, "hitstun": 16, "blockstun": 11, "hitstop": 7, "pushback": 250,
-            "cancel": {"from": 6, "to": 14, "into": ["5HP", "2HP"]}},
-    "2HP": {"posture": "crouch", "button": "HP", "anim": "cross", "startup": 9, "active": 4, "recovery": 22,
-            "hitbox": [2000, 9000, 8000, 10000], "level": "mid", "damage": 600, "hitstun": 26, "blockstun": 14, "hitstop": 10, "pushback": 200,
-            "launch": {"vx": 150, "vy": 1400}, "tags": ["launcher", "anti_air"],
-            "cancel": {"from": 10, "to": 24, "on_hit_only": true, "into": ["JUMP"]}},
-    "2HK": {"posture": "crouch", "button": "HK", "anim": "kick", "startup": 10, "active": 4, "recovery": 22,
-            "hitbox": [3500, 0, 10500, 2500], "level": "low", "damage": 600, "hitstun": 20, "blockstun": 13, "hitstop": 9, "pushback": 300,
-            "launch": {"vx": 200, "vy": 450}, "tags": ["sweep"]},
-    "j.LP": {"posture": "air", "button": "LP", "anim": "jab", "startup": 4, "active": 8, "recovery": 6,
-             "hitbox": [1500, 6000, 7000, 3000], "level": "high", "damage": 350, "hitstun": 16, "blockstun": 11, "hitstop": 6, "pushback": 200,
-             "air_launch": {"vx": 120, "vy": 700}, "cancel": {"from": 4, "to": 12, "into": ["j.HP", "j.HK"]}},
-    "j.HP": {"posture": "air", "button": "HP", "anim": "cross", "startup": 6, "active": 6, "recovery": 10,
-             "hitbox": [2000, 7000, 8500, 3500], "level": "overhead", "damage": 600, "hitstun": 20, "blockstun": 14, "hitstop": 8, "pushback": 250,
-             "air_launch": {"vx": 150, "vy": 650}, "cancel": {"from": 6, "to": 14, "into": ["j.HK"]}},
-    "j.HK": {"posture": "air", "button": "HK", "anim": "kick", "startup": 7, "active": 6, "recovery": 12,
-             "hitbox": [2500, 1000, 8500, 4000], "level": "overhead", "damage": 700, "hitstun": 21, "blockstun": 14, "hitstop": 9, "pushback": 300,
-             "air_launch": {"vx": 350, "vy": -300}, "tags": ["spike"]}
+    "5LP": {
+      "posture": "stand",
+      "button": "LP",
+      "anim": "jab",
+      "startup": 5,
+      "active": 3,
+      "recovery": 10,
+      "hitbox": [
+        3000,
+        12000,
+        8000,
+        2500
+      ],
+      "level": "mid",
+      "damage": 300,
+      "hitstun": 15,
+      "blockstun": 11,
+      "hitstop": 6,
+      "pushback": 250,
+      "cancel": {
+        "from": 5,
+        "to": 14,
+        "into": [
+          "5LP",
+          "5HP",
+          "5LK",
+          "5HK",
+          "2HP",
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "5HP": {
+      "posture": "stand",
+      "button": "HP",
+      "anim": "cross",
+      "startup": 9,
+      "active": 4,
+      "recovery": 18,
+      "hitbox": [
+        3500,
+        12500,
+        9500,
+        3000
+      ],
+      "level": "mid",
+      "damage": 700,
+      "hitstun": 22,
+      "blockstun": 15,
+      "hitstop": 9,
+      "pushback": 300,
+      "cancel": {
+        "from": 9,
+        "to": 18,
+        "into": [
+          "5HK",
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "5LK": {
+      "posture": "stand",
+      "button": "LK",
+      "anim": "kick",
+      "startup": 7,
+      "active": 3,
+      "recovery": 14,
+      "hitbox": [
+        3000,
+        6000,
+        8500,
+        3000
+      ],
+      "level": "mid",
+      "damage": 400,
+      "hitstun": 17,
+      "blockstun": 12,
+      "hitstop": 7,
+      "pushback": 280,
+      "cancel": {
+        "from": 7,
+        "to": 15,
+        "into": [
+          "5HP",
+          "5HK",
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "5HK": {
+      "posture": "stand",
+      "button": "HK",
+      "anim": "kick",
+      "startup": 12,
+      "active": 4,
+      "recovery": 20,
+      "hitbox": [
+        4000,
+        9000,
+        10500,
+        3500
+      ],
+      "level": "mid",
+      "damage": 800,
+      "hitstun": 24,
+      "blockstun": 16,
+      "hitstop": 10,
+      "pushback": 450,
+      "properties": [
+        "wall_splat"
+      ],
+      "cancel": {
+        "from": 12,
+        "to": 24,
+        "into": [
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "2LP": {
+      "posture": "crouch",
+      "button": "LP",
+      "anim": "jab",
+      "startup": 4,
+      "active": 3,
+      "recovery": 9,
+      "hitbox": [
+        3000,
+        7000,
+        7500,
+        2500
+      ],
+      "level": "mid",
+      "damage": 250,
+      "hitstun": 14,
+      "blockstun": 10,
+      "hitstop": 6,
+      "pushback": 220,
+      "cancel": {
+        "from": 4,
+        "to": 12,
+        "into": [
+          "2LP",
+          "2LK",
+          "5LP",
+          "2HP",
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "2LK": {
+      "posture": "crouch",
+      "button": "LK",
+      "anim": "kick",
+      "startup": 6,
+      "active": 3,
+      "recovery": 14,
+      "hitbox": [
+        3000,
+        0,
+        9000,
+        2500
+      ],
+      "level": "low",
+      "damage": 300,
+      "hitstun": 16,
+      "blockstun": 11,
+      "hitstop": 7,
+      "pushback": 250,
+      "cancel": {
+        "from": 6,
+        "to": 14,
+        "into": [
+          "5HP",
+          "2HP",
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "2HP": {
+      "posture": "crouch",
+      "button": "HP",
+      "anim": "cross",
+      "startup": 9,
+      "active": 4,
+      "recovery": 22,
+      "hitbox": [
+        2000,
+        9000,
+        8000,
+        10000
+      ],
+      "level": "mid",
+      "damage": 600,
+      "hitstun": 26,
+      "blockstun": 14,
+      "hitstop": 10,
+      "pushback": 200,
+      "launch": {
+        "vx": 150,
+        "vy": 1400
+      },
+      "tags": [
+        "launcher",
+        "anti_air"
+      ],
+      "cancel": {
+        "from": 10,
+        "to": 24,
+        "on_hit_only": true,
+        "into": [
+          "JUMP",
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "2HK": {
+      "posture": "crouch",
+      "button": "HK",
+      "anim": "kick",
+      "startup": 10,
+      "active": 4,
+      "recovery": 22,
+      "hitbox": [
+        3500,
+        0,
+        10500,
+        2500
+      ],
+      "level": "low",
+      "damage": 600,
+      "hitstun": 20,
+      "blockstun": 13,
+      "hitstop": 9,
+      "pushback": 300,
+      "launch": {
+        "vx": 200,
+        "vy": 450
+      },
+      "tags": [
+        "sweep"
+      ],
+      "cancel": {
+        "from": 10,
+        "to": 22,
+        "into": [
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "j.LP": {
+      "posture": "air",
+      "button": "LP",
+      "anim": "jab",
+      "startup": 4,
+      "active": 8,
+      "recovery": 6,
+      "hitbox": [
+        1500,
+        6000,
+        7000,
+        3000
+      ],
+      "level": "high",
+      "damage": 350,
+      "hitstun": 16,
+      "blockstun": 11,
+      "hitstop": 6,
+      "pushback": 200,
+      "air_launch": {
+        "vx": 120,
+        "vy": 700
+      },
+      "cancel": {
+        "from": 4,
+        "to": 12,
+        "into": [
+          "j.HP",
+          "j.HK"
+        ]
+      }
+    },
+    "j.HP": {
+      "posture": "air",
+      "button": "HP",
+      "anim": "cross",
+      "startup": 6,
+      "active": 6,
+      "recovery": 10,
+      "hitbox": [
+        2000,
+        7000,
+        8500,
+        3500
+      ],
+      "level": "overhead",
+      "damage": 600,
+      "hitstun": 20,
+      "blockstun": 14,
+      "hitstop": 8,
+      "pushback": 250,
+      "air_launch": {
+        "vx": 150,
+        "vy": 650
+      },
+      "cancel": {
+        "from": 6,
+        "to": 14,
+        "into": [
+          "j.HK"
+        ]
+      }
+    },
+    "j.HK": {
+      "posture": "air",
+      "button": "HK",
+      "anim": "kick",
+      "startup": 7,
+      "active": 6,
+      "recovery": 12,
+      "hitbox": [
+        2500,
+        1000,
+        8500,
+        4000
+      ],
+      "level": "overhead",
+      "damage": 700,
+      "hitstun": 21,
+      "blockstun": 14,
+      "hitstop": 9,
+      "pushback": 300,
+      "air_launch": {
+        "vx": 350,
+        "vy": -300
+      },
+      "tags": [
+        "spike"
+      ]
+    },
+    "236P": {
+      "type": "special",
+      "command": "236",
+      "button": "P",
+      "easy": "N",
+      "name": "Energy Wave",
+      "anim": "cross",
+      "startup": 13,
+      "active": 1,
+      "recovery": 28,
+      "hitbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "projectile": {
+        "spawn": 13,
+        "vx": 650,
+        "life": 80,
+        "box": [
+          2000,
+          10500,
+          4000,
+          3200
+        ],
+        "y": 0
+      },
+      "level": "mid",
+      "damage": 600,
+      "hitstun": 20,
+      "blockstun": 17,
+      "hitstop": 8,
+      "pushback": 350,
+      "cancel": {
+        "from": 13,
+        "to": 18,
+        "into": [
+          "SUPER"
+        ]
+      }
+    },
+    "623P": {
+      "type": "special",
+      "command": "623",
+      "button": "P",
+      "easy": "D",
+      "name": "Rising Fist",
+      "anim": "uppercut",
+      "startup": 4,
+      "active": 8,
+      "recovery": 30,
+      "hitbox": [
+        1500,
+        9000,
+        6000,
+        9000
+      ],
+      "invuln": [
+        1,
+        7
+      ],
+      "motion": {
+        "from": 1,
+        "to": 10,
+        "vx": 150
+      },
+      "level": "mid",
+      "damage": 1100,
+      "hitstun": 30,
+      "blockstun": 20,
+      "hitstop": 12,
+      "pushback": 300,
+      "launch": {
+        "vx": 200,
+        "vy": 1500
+      },
+      "tags": [
+        "anti_air",
+        "reversal"
+      ],
+      "cancel": {
+        "from": 4,
+        "to": 9,
+        "on_hit_only": true,
+        "into": [
+          "SUPER"
+        ]
+      }
+    },
+    "214K": {
+      "type": "special",
+      "command": "214",
+      "button": "K",
+      "easy": "F",
+      "name": "Rush Kick",
+      "anim": "kick",
+      "startup": 14,
+      "active": 5,
+      "recovery": 18,
+      "hitbox": [
+        3000,
+        7000,
+        9500,
+        4000
+      ],
+      "motion": {
+        "from": 1,
+        "to": 16,
+        "vx": 750
+      },
+      "level": "mid",
+      "damage": 900,
+      "hitstun": 26,
+      "blockstun": 14,
+      "hitstop": 11,
+      "pushback": 600,
+      "properties": [
+        "wall_splat"
+      ],
+      "cancel": {
+        "from": 14,
+        "to": 20,
+        "on_hit_only": true,
+        "into": [
+          "SUPER"
+        ]
+      }
+    },
+    "236K": {
+      "type": "special",
+      "command": "236",
+      "button": "K",
+      "easy": "B",
+      "name": "Sweep Slide",
+      "anim": "kick",
+      "posture": "crouch",
+      "startup": 11,
+      "active": 6,
+      "recovery": 22,
+      "hitbox": [
+        3000,
+        0,
+        10500,
+        2500
+      ],
+      "motion": {
+        "from": 1,
+        "to": 14,
+        "vx": 520
+      },
+      "level": "low",
+      "damage": 750,
+      "hitstun": 22,
+      "blockstun": 12,
+      "hitstop": 10,
+      "pushback": 400,
+      "launch": {
+        "vx": 200,
+        "vy": 500
+      }
+    },
+    "SUPER": {
+      "type": "super",
+      "command": "236236",
+      "button": "P",
+      "easy": "SUPER",
+      "name": "Election Day Crusher",
+      "anim": "cross",
+      "startup": 9,
+      "active": 6,
+      "recovery": 40,
+      "hitbox": [
+        2000,
+        8000,
+        11000,
+        8000
+      ],
+      "invuln": [
+        1,
+        14
+      ],
+      "super_cost": 10000,
+      "super_freeze": 36,
+      "motion": {
+        "from": 1,
+        "to": 14,
+        "vx": 900
+      },
+      "level": "mid",
+      "damage": 2600,
+      "min_damage_percent": 50,
+      "hitstun": 40,
+      "blockstun": 24,
+      "hitstop": 18,
+      "pushback": 500,
+      "launch": {
+        "vx": 450,
+        "vy": 1300
+      },
+      "properties": [
+        "wall_splat"
+      ]
+    },
+    "IMPACT": {
+      "type": "drive",
+      "name": "Drive Impact",
+      "anim": "cross",
+      "startup": 24,
+      "active": 4,
+      "recovery": 30,
+      "drive_cost": 10000,
+      "hitbox": [
+        3000,
+        9000,
+        10000,
+        5000
+      ],
+      "armor": 2,
+      "motion": {
+        "from": 1,
+        "to": 22,
+        "vx": 120
+      },
+      "level": "mid",
+      "damage": 900,
+      "hitstun": 50,
+      "blockstun": 22,
+      "hitstop": 16,
+      "pushback": 500,
+      "properties": [
+        "wall_splat"
+      ]
+    },
+    "THROW": {
+      "type": "throw",
+      "name": "Throw",
+      "anim": "jab",
+      "startup": 5,
+      "active": 3,
+      "recovery": 22,
+      "range": 11500,
+      "damage": 1200,
+      "hitbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "level": "throw",
+      "hitstun": 0,
+      "blockstun": 0,
+      "hitstop": 10,
+      "pushback": 0,
+      "launch": {
+        "vx": 350,
+        "vy": 700
+      }
+    }
   }
 }
