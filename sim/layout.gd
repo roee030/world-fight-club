@@ -30,7 +30,13 @@ const H_TIMER := 2          # round frames left
 const H_FIGHTERS := 3
 const H_WINNER := 4         # -1 none, else fighter index, 99 = draw
 const H_DATA_VERSION := 5
-const HEADER := 8
+const H_ROUND := 6          # current round number (1-based)
+const H_INTRO := 7          # frames of round intro left (inputs ignored)
+const H_WINS := 8           # H_WINS + team: rounds won per team (2 teams)
+const H_END_TIMER := 10     # frames since the round was decided
+const H_MATCH_OVER := 11    # 1 when a team reached rounds_to_win
+const H_ROUNDS_TO_WIN := 12
+const HEADER := 16
 
 # Fighter block.
 const F_X := 0
@@ -78,6 +84,7 @@ const F_RUSH := 59          # frames left of the Drive Rush bonus
 const F_BURNOUT := 60       # 1 while burned out (no Drive actions)
 const F_PROJECTILE_OUT := 61  # 1 while this fighter's projectile is alive
 const F_SUPER_FREEZE := 62  # frames of super flash left (both fighters frozen)
+const F_START_X := 63       # spawn position, restored every round
 const FIGHTER := 64
 
 # Projectiles live after the fighter blocks.
@@ -133,6 +140,9 @@ const EV_BURNOUT := 15
 const EV_ARMOR := 16
 const EV_SPECIAL := 17      # a = move index (special started; for callouts)
 const EV_RUSH := 18
+const EV_ROUND_START := 19  # fighter = -1, a = round number
+const EV_FIGHT := 20        # intro over, fight!
+const EV_MATCH_OVER := 21   # a = winning team
 const EVENT_SIZE := 4
 
 

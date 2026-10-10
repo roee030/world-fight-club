@@ -25,11 +25,11 @@ func _run() -> void:
 	var s: PackedInt32Array = battle.state
 	var hp0 := s[L.base(0) + L.F_HP]
 	var hp1 := s[L.base(1) + L.F_HP]
-	if hp0 >= 10000 and hp1 >= 10000 and battle._round == 1:
+	if hp0 >= 10000 and hp1 >= 10000 and s[L.H_ROUND] == 1:
 		return _fail("no damage was dealt in 15 s of CPU vs CPU")
 	var view_x: float = battle.views[0].position.x
 	if absf(view_x - s[L.base(0) + L.F_X] / 10000.0) > 0.01:
 		return _fail("character view does not follow the sim position")
-	print("PASS: new-engine battle scene runs (hp %d / %d, round %d)" % [hp0, hp1, battle._round])
+	print("PASS: new-engine battle scene runs (hp %d / %d, round %d)" % [hp0, hp1, s[L.H_ROUND]])
 	battle.free()
 	quit()

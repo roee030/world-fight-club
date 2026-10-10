@@ -26,7 +26,8 @@ const NEUTRAL := [L.S_IDLE, L.S_WALK_F, L.S_WALK_B, L.S_CROUCH]
 
 ## fighters: [{"x": int, "hp": int, "walk": int, "team": int}], two or more.
 ## Fighters face the nearest fighter of the other team.
-static func new_match(moveset, fighters: Array, rng_seed: int = 1) -> PackedInt32Array:
+## options: {"intro": bool (default false), "rounds_to_win": int (default 0 = single round, no reset)}
+static func new_match(moveset, fighters: Array, rng_seed: int = 1, options: Dictionary = {}) -> PackedInt32Array:
 	var s := PackedInt32Array()
 	s.resize(L.HEADER + L.FIGHTER * fighters.size() + L.PROJECTILE * L.PROJECTILES)
 	s[L.H_FRAME] = 0
@@ -35,10 +36,14 @@ static func new_match(moveset, fighters: Array, rng_seed: int = 1) -> PackedInt3
 	s[L.H_FIGHTERS] = fighters.size()
 	s[L.H_WINNER] = -1
 	s[L.H_DATA_VERSION] = int(moveset.rules.data_version)
+	s[L.H_ROUND] = 1
+	s[L.H_ROUNDS_TO_WIN] = int(options.get("rounds_to_win", 0))
+	s[L.H_INTRO] = int(moveset.rules.intro_frames) if bool(options.get("intro", false)) else 0
 	for i in range(fighters.size()):
 		var b := L.base(i)
 		var def: Dictionary = fighters[i]
 		s[b + L.F_X] = int(def.get("x", 0))
+		s[b + L.F_START_X] = int(def.get("x", 0))
 		s[b + L.F_HP] = int(def.get("hp", 10000))
 		s[b + L.F_HP_MAX] = int(def.get("hp", 10000))
 		s[b + L.F_WALK] = int(def.get("walk", 541))
@@ -73,16 +78,73 @@ static func step(moveset, s: PackedInt32Array, inputs: PackedInt32Array) -> Pack
 	var r: Dictionary = moveset.rules
 	var count := s[L.H_FIGHTERS]
 	s[L.H_FRAME] += 1
-	if s[L.H_WINNER] < 0 and s[L.H_TIMER] > 0:
+	var intro := s[L.H_INTRO] > 0
+	if intro:
+		s[L.H_INTRO] -= 1
+		if s[L.H_INTRO] == 0:
+			_emit(events, L.EV_FIGHT, -1, s[L.H_ROUND], 0)
+	elif s[L.H_WINNER] < 0 and s[L.H_TIMER] > 0:
 		s[L.H_TIMER] -= 1
 	for i in range(count):
-		_step_fighter(moveset, r, s, i, inputs[i] if i < inputs.size() else 0, events)
+		_step_fighter(moveset, r, s, i, 0 if intro else (inputs[i] if i < inputs.size() else 0), events)
 	_step_projectiles(moveset, r, s, events)
 	_resolve_push(r, s, count)
 	_resolve_hits(moveset, r, s, count, events)
 	if s[L.H_WINNER] < 0 and s[L.H_TIMER] <= 0:
 		_decide_by_time(s, count)
+	_round_flow(moveset, r, s, count, events)
 	return events
+
+
+## Deterministic round flow: count the round win, then reset for the next round
+## (or end the match). Lives in the sim so online peers agree on it exactly.
+static func _round_flow(moveset, r: Dictionary, s: PackedInt32Array, count: int, events: PackedInt32Array) -> void:
+	if s[L.H_WINNER] < 0 or s[L.H_ROUNDS_TO_WIN] <= 0 or s[L.H_MATCH_OVER] != 0:
+		return
+	s[L.H_END_TIMER] += 1
+	if s[L.H_END_TIMER] == 1 and s[L.H_WINNER] < 2:
+		s[L.H_WINS + s[L.H_WINNER]] += 1
+		if s[L.H_WINS + s[L.H_WINNER]] >= s[L.H_ROUNDS_TO_WIN]:
+			s[L.H_MATCH_OVER] = 1
+			_emit(events, L.EV_MATCH_OVER, -1, s[L.H_WINNER], 0)
+			return
+	if s[L.H_END_TIMER] < int(r.round_end_frames):
+		return
+	# Next round: fighters respawn; Super gauge carries over.
+	s[L.H_ROUND] += 1
+	s[L.H_WINNER] = -1
+	s[L.H_END_TIMER] = 0
+	s[L.H_TIMER] = int(r.round_frames)
+	s[L.H_INTRO] = int(r.intro_frames)
+	for i in range(count):
+		var b := L.base(i)
+		var keep_super := s[b + L.F_SUPER]
+		var keep := [s[b + L.F_START_X], s[b + L.F_HP_MAX], s[b + L.F_WALK], s[b + L.F_TEAM], s[b + L.F_TARGET], s[b + L.F_FLAGS] & L.FLAG_EASY, s[b + L.F_PREV_INPUT]]
+		for k in range(L.FIGHTER):
+			s[b + k] = 0
+		s[b + L.F_START_X] = keep[0]
+		s[b + L.F_X] = keep[0]
+		s[b + L.F_HP_MAX] = keep[1]
+		s[b + L.F_HP] = keep[1]
+		s[b + L.F_WALK] = keep[2]
+		s[b + L.F_TEAM] = keep[3]
+		s[b + L.F_TARGET] = keep[4]
+		s[b + L.F_FLAGS] = keep[5]
+		s[b + L.F_PREV_INPUT] = keep[6]
+		s[b + L.F_SUPER] = keep_super
+		s[b + L.F_MOVE] = -1
+		s[b + L.F_BUFFER_MOVE] = -1
+		s[b + L.F_SPECIAL_BUFFER] = -1
+		s[b + L.F_DRIVE] = int(r.drive_max)
+		s[b + L.F_STATE] = L.S_IDLE
+		s[b + L.F_STATE_FRAME] = 1
+		for k in range(L.HIST_LEN):
+			s[b + L.F_HIST + k] = 5
+	for i in range(count):
+		_face_target(s, i)
+	for slot in range(L.PROJECTILES):
+		s[L.projectile_base(s, slot) + L.P_ACTIVE] = 0
+	_emit(events, L.EV_ROUND_START, -1, s[L.H_ROUND], 0)
 
 
 # --- input -----------------------------------------------------------------------

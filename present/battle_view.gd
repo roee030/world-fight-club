@@ -17,6 +17,7 @@ const PrivateRoster = preload("res://scripts/private_roster.gd")
 const AudioManagerScript = preload("res://scripts/audio/audio_manager.gd")
 const VirtualStickScript = preload("res://scripts/virtual_stick.gd")
 const TouchButtonScript = preload("res://scripts/touch_action_button.gd")
+const Session = preload("res://net/rollback_session.gd")
 
 const STAGE_ART := "res://assets/stages/kaplan-junction-arena.jpg"
 const MALE := "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf"
@@ -31,11 +32,16 @@ var camera: Camera3D
 var audio: Node
 var _shake := 0.0
 var _sparks: Array = []
-var _round_wins := [0, 0]
-var _round := 1
-var _end_timer := 0
-var _intro := 90
 var cpu_controls_player := false
+## Online match handed over by the lobby: {"client": ws_client, "player": 0|1, "seed": int}.
+static var pending_online: Dictionary = {}
+var online: Dictionary = {}
+var session: RefCounted
+var local_slot := 0
+var _last_event_frame := 0
+var _inbox: Array = []
+var _match_over_frames := 0
+var _prev_winner := -1
 ## A local private fighter (git-ignored private/, e.g. the owner) plays as P1
 ## through the 12-pose sprite adapter until it has a rigged 3D model.
 var use_private_fighter := true
@@ -74,15 +80,26 @@ func _ready() -> void:
 	_build_touch()
 	audio = AudioManagerScript.new()
 	add_child(audio)
-	_new_round()
+	if not pending_online.is_empty():
+		online = pending_online
+		pending_online = {}
+		local_slot = int(online.player)
+		online.client.packet_received.connect(func(packet: Dictionary): _inbox.append(packet))
+		online.client.opponent_left.connect(func(): _show_banner("OPPONENT LEFT", 600))
+	_new_match()
 
 
-func _new_round() -> void:
-	state = Sim.new_match(moveset, [{"x": -16000, "hp": 10000, "easy": easy_controls}, {"x": 16000, "hp": 10000, "easy": true}], 1000 + _round)
-	cpu = CpuPilot.new(2, 77 + _round)
-	_intro = 90
-	_end_timer = 0
-	_show_banner("ROUND %d" % _round, 50)
+func _new_match() -> void:
+	var seed_value := int(online.get("seed", 1000 + randi() % 1000))
+	# In online play both fighters use the same control rules (Easy auto-combos on).
+	state = Sim.new_match(moveset, [{"x": -16000, "hp": 10000, "easy": easy_controls or not online.is_empty()}, {"x": 16000, "hp": 10000, "easy": true}], seed_value, {"intro": true, "rounds_to_win": 2})
+	cpu = CpuPilot.new(2, seed_value)
+	_match_over_frames = 0
+	_prev_winner = -1
+	_last_event_frame = 0
+	if not online.is_empty():
+		session = Session.new(moveset, state, local_slot, 2)
+	_show_banner("ROUND 1", 60)
 
 
 func _build_world() -> void:
@@ -156,37 +173,49 @@ func _build_world() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	var inputs := PackedInt32Array([0, 0])
-	if not headless_inputs.is_empty():
-		var pair: Array = headless_inputs.pop_front()
-		inputs[0] = int(pair[0])
-		inputs[1] = int(pair[1])
-	elif _intro > 0:
-		_intro -= 1
-		if _intro == 30:
-			_show_banner("FIGHT!", 40)
-			audio.play_voice(&"fight")
+	if not online.is_empty():
+		_step_online()
 	else:
-		inputs[0] = cpu.decide(state, 0, moveset) if cpu_controls_player else _read_keyboard()
-		inputs[1] = cpu.decide(state, 1, moveset)
-	var events := Sim.step(moveset, state, inputs)
-	_handle_events(events)
-	if state[L.H_WINNER] >= 0:
-		_end_timer += 1
-		if _end_timer == 1:
-			var winner := state[L.H_WINNER]
-			if winner < 2: _round_wins[winner] += 1
-			_show_banner("K.O." if _any_ko() else "TIME", 90)
-		var match_over: bool = _round_wins[0] >= ROUNDS_TO_WIN or _round_wins[1] >= ROUNDS_TO_WIN
-		if _end_timer == 150 and match_over:
-			_show_banner("YOU WIN" if _round_wins[0] > _round_wins[1] else "YOU LOSE", 120)
-		if _end_timer >= (300 if match_over else 210):
-			if match_over:
-				_round_wins = [0, 0]
-				_round = 1
-			else:
-				_round += 1
-			_new_round()
+		var inputs := PackedInt32Array([0, 0])
+		if not headless_inputs.is_empty():
+			var pair: Array = headless_inputs.pop_front()
+			inputs[0] = int(pair[0])
+			inputs[1] = int(pair[1])
+		else:
+			inputs[0] = cpu.decide(state, 0, moveset) if cpu_controls_player else _read_keyboard()
+			inputs[1] = cpu.decide(state, 1, moveset)
+		_handle_events(Sim.step(moveset, state, inputs))
+	_round_presentation()
+
+
+func _step_online() -> void:
+	online.client.poll()
+	for packet in _inbox:
+		session.receive(packet)
+	_inbox.clear()
+	if not session.should_stall():
+		online.client.send_packet(session.add_local_input(_read_keyboard()))
+	session.advance()
+	state = session.state
+	# Present each frame's events once: only frames newer than the last shown.
+	for entry in session.events_out:
+		if int(entry[0]) > _last_event_frame:
+			_handle_events(entry[1])
+			_last_event_frame = int(entry[0])
+	session.events_out.clear()
+
+
+func _round_presentation() -> void:
+	var winner := state[L.H_WINNER]
+	if winner >= 0 and _prev_winner < 0:
+		_show_banner("K.O." if _any_ko() else "TIME", 90)
+	_prev_winner = winner
+	if state[L.H_MATCH_OVER] != 0:
+		_match_over_frames += 1
+		if _match_over_frames == 100:
+			_show_banner("YOU WIN" if state[L.H_WINNER] == local_slot else "YOU LOSE", 200)
+		if _match_over_frames >= 320 and online.is_empty():
+			_new_match()
 
 
 func _process(delta: float) -> void:
@@ -267,9 +296,14 @@ func _handle_events(events: PackedInt32Array) -> void:
 				_shake = maxf(_shake, 0.2)
 			L.EV_LAUNCH:
 				_shake = maxf(_shake, 0.12)
+			L.EV_ROUND_START:
+				_show_banner("ROUND %d" % events[e + 2], 60)
+			L.EV_FIGHT:
+				_show_banner("FIGHT!", 40)
+				audio.play_voice(&"fight")
 			L.EV_KO:
 				_shake = 0.35
-				_slowmo = 1.1
+				if online.is_empty(): _slowmo = 1.1
 				_zoom_punch = 0.6
 				audio.play_sfx(&"finisher")
 			L.EV_LAND:
@@ -456,7 +490,7 @@ func _build_hud() -> void:
 		bar.offset_bottom = 48
 		root.add_child(bar)
 		_hp_bars.append(bar)
-		var name_label := _label(root, player_name if i == 0 else "CPU", 18, HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_RIGHT)
+		var name_label := _label(root, _name_for(i), 18, HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_RIGHT)
 		name_label.anchor_left = bar.anchor_left
 		name_label.anchor_right = bar.anchor_right
 		name_label.offset_top = 50
@@ -548,6 +582,13 @@ func _build_touch() -> void:
 		_touch_buttons[int(entry[0])] = button
 
 
+func _name_for(i: int) -> String:
+	if not pending_online.is_empty() or not online.is_empty():
+		var slot := int((pending_online if not pending_online.is_empty() else online).player)
+		return "YOU" if i == slot else "RIVAL"
+	return player_name if i == 0 else "CPU"
+
+
 func _label(parent: Control, text: String, size: int, align: HorizontalAlignment) -> Label:
 	var label := Label.new()
 	label.text = text
@@ -593,7 +634,7 @@ func _update_hud() -> void:
 		_hp_bars[i].value = state[b + L.F_HP]
 		var combo := state[b + L.F_COMBO]
 		_combo_labels[i].text = ("%d HITS\n%d DMG" % [combo, state[b + L.F_COMBO_DAMAGE]]) if combo >= 2 else ""
-		_round_pips[i].text = "* ".repeat(_round_wins[i]).strip_edges()
+		_round_pips[i].text = "* ".repeat(state[L.H_WINS + i]).strip_edges()
 	_timer_label.text = str(int(ceil(state[L.H_TIMER] / 60.0)))
 	_mode_label.text = "EASY  (TAB)" if easy_controls else "PRO  (TAB)"
 	for i in range(2):

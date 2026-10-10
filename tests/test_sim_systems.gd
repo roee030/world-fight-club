@@ -26,7 +26,7 @@ func _fail(message: String) -> void:
 
 func _run() -> void:
 	ms = Moveset.compile(["res://data/movesets/universal.json"])
-	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo]:
+	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo, _round_flow]:
 		var error: String = check.call()
 		if error != "":
 			return _fail(error)
@@ -204,4 +204,26 @@ func _easy_auto_combo() -> String:
 	var pro_dealt := 10000 - _f(pro, 1, L.F_HP)
 	if pro_dealt != 700 or easy_dealt != 300 + 400 * 80 / 100:
 		return "assisted damage: pro %d (expected 700), easy %d (expected 620)" % [pro_dealt, easy_dealt]
+	return ""
+
+
+func _round_flow() -> String:
+	# Best of three with intros: inputs are ignored during the intro, a KO wins
+	# the round, fighters respawn for the next one, two wins end the match.
+	var s := Sim.new_match(ms, [{"x": -5200, "hp": 600}, {"x": 5200, "hp": 600}], 3, {"intro": true, "rounds_to_win": 2})
+	var kinds := _play(s, 30, {5: L.IN_HP})
+	if _f(s, 1, L.F_HP) != 600: return "inputs during the intro must be ignored"
+	kinds = _play(s, 70, {})
+	if not _has(kinds, L.EV_FIGHT): return "the intro must end with FIGHT"
+	var wins_needed := 2
+	var guard := 0
+	while s[L.H_MATCH_OVER] == 0 and guard < 3000:
+		guard += 1
+		var press := L.IN_HP if guard % 40 == 1 else 0
+		var events := Sim.step(ms, s, PackedInt32Array([press, 0]))
+		for e in range(0, events.size(), L.EVENT_SIZE):
+			kinds.append(events[e]); kinds.append(events[e + 1]); kinds.append(events[e + 2])
+	if s[L.H_MATCH_OVER] != 1: return "the match must end"
+	if s[L.H_WINS + 0] != wins_needed or s[L.H_WINS + 1] != 0: return "player 0 must win 2-0 (got %d-%d)" % [s[L.H_WINS], s[L.H_WINS + 1]]
+	if not _has(kinds, L.EV_ROUND_START, -1, 2): return "round 2 must start after round 1"
 	return ""
