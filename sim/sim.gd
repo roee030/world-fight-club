@@ -48,6 +48,7 @@ static func new_match(moveset, fighters: Array, rng_seed: int = 1) -> PackedInt3
 		s[b + L.F_SPECIAL_BUFFER] = -1
 		s[b + L.F_DRIVE] = int(moveset.rules.drive_max)
 		s[b + L.F_SUPER] = int(def.get("super", 0))
+		if bool(def.get("easy", false)): s[b + L.F_FLAGS] = s[b + L.F_FLAGS] | L.FLAG_EASY
 		s[b + L.F_STATE] = L.S_IDLE
 		s[b + L.F_STATE_FRAME] = 1
 		for k in range(L.HIST_LEN):
@@ -135,6 +136,7 @@ static func _read_commands(moveset, r: Dictionary, s: PackedInt32Array, b: int, 
 		for move in moveset.specials:
 			if str(moveset.moves[move].easy) == code:
 				_buffer_special(r, s, b, move)
+				s[b + L.F_FLAGS] = s[b + L.F_FLAGS] | L.FLAG_ASSISTED
 				return
 		return
 	# Pro mode: motion + button class.
@@ -153,6 +155,7 @@ static func _read_commands(moveset, r: Dictionary, s: PackedInt32Array, b: int, 
 			if int(m.type) == T_SUPER and s[b + L.F_SUPER] < int(m.super_cost):
 				continue
 			_buffer_special(r, s, b, move)
+			s[b + L.F_FLAGS] = s[b + L.F_FLAGS] & ~L.FLAG_ASSISTED
 			return
 
 
@@ -434,6 +437,7 @@ static func _start_attack(moveset, s: PackedInt32Array, b: int, posture: int, ev
 		move = moveset.move_for(0, button)
 	if move < 0:
 		return false
+	s[b + L.F_FLAGS] = s[b + L.F_FLAGS] & ~L.FLAG_ASSISTED
 	_begin_move(s, b, move, posture == 2, moveset)
 	_emit(events, L.EV_ATTACK, i, move, 0)
 	return true
@@ -513,6 +517,16 @@ static func _try_cancel(moveset, r: Dictionary, s: PackedInt32Array, b: int, m: 
 		return true
 	if s[b + L.F_BUFFER_MOVE] < 0:
 		return false
+	# Easy auto-combo: LP again continues the route (assisted damage).
+	if (s[b + L.F_FLAGS] & L.FLAG_EASY) != 0 and s[b + L.F_BUFFER_MOVE] == 0 and moveset.auto_next.has(s[b + L.F_MOVE]):
+		var next: int = moveset.auto_next[s[b + L.F_MOVE]]
+		s[b + L.F_FLAGS] = s[b + L.F_FLAGS] | L.FLAG_ASSISTED
+		if int(moveset.moves[next].type) != T_NORMAL:
+			_buffer_special(r, s, b, next)
+			return _start_special(moveset, r, s, b, i, events)
+		_begin_move(s, b, next, int(moveset.moves[next].posture) == 2, moveset)
+		_emit(events, L.EV_ATTACK, i, next, 1)
+		return true
 	var posture := int(m.posture)
 	if posture != 2:
 		posture = 1 if _v(inp) < 0 else 0
@@ -843,6 +857,8 @@ static func _apply_hit(moveset, r: Dictionary, s: PackedInt32Array, a: int, d: i
 	if counter:
 		damage = damage * int(r.counter_hit.damage_percent) / 100
 		hitstop += int(r.counter_hit.hitstop_bonus)
+	if (s[ba + L.F_FLAGS] & L.FLAG_ASSISTED) != 0 and not projectile:
+		damage = damage * int(r.assist_damage_percent) / 100
 	damage = maxi(1, damage)
 	s[bd + L.F_HP] = maxi(0, s[bd + L.F_HP] - damage)
 	s[bd + L.F_HITS_TAKEN] = taken + 1

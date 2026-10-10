@@ -39,6 +39,9 @@ var cpu_controls_player := false
 ## through the 12-pose sprite adapter until it has a rigged 3D model.
 var use_private_fighter := true
 var player_name := "YOU"
+## Easy (auto-combos, one-button specials) is the default on touch screens; Tab toggles.
+var easy_controls := DisplayServer.is_touchscreen_available()
+var _mode_label: Label
 var headless_inputs: Array = []   # tests: per-frame input pairs
 
 # HUD
@@ -72,7 +75,7 @@ func _ready() -> void:
 
 
 func _new_round() -> void:
-	state = Sim.new_match(moveset, [{"x": -16000, "hp": 10000}, {"x": 16000, "hp": 10000}], 1000 + _round)
+	state = Sim.new_match(moveset, [{"x": -16000, "hp": 10000, "easy": easy_controls}, {"x": 16000, "hp": 10000, "easy": true}], 1000 + _round)
 	cpu = CpuPilot.new(2, 77 + _round)
 	_intro = 90
 	_end_timer = 0
@@ -219,6 +222,12 @@ func _read_keyboard() -> int:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		get_tree().change_scene_to_file("res://scenes/main.tscn")
+	if event is InputEventKey and event.pressed and event.keycode == KEY_TAB:
+		easy_controls = not easy_controls
+		var b := L.base(0)
+		if easy_controls: state[b + L.F_FLAGS] = state[b + L.F_FLAGS] | L.FLAG_EASY
+		else: state[b + L.F_FLAGS] = state[b + L.F_FLAGS] & ~L.FLAG_EASY
+		_show_callout("EASY CONTROLS" if easy_controls else "PRO CONTROLS", 40)
 
 
 func _any_ko() -> bool:
@@ -479,6 +488,12 @@ func _build_hud() -> void:
 		combo.offset_bottom = 230
 		combo.add_theme_color_override("font_color", Color("#ffd75a"))
 		_combo_labels.append(combo)
+	_mode_label = _label(root, "", 13, HORIZONTAL_ALIGNMENT_CENTER)
+	_mode_label.anchor_left = 0.44
+	_mode_label.anchor_right = 0.56
+	_mode_label.offset_top = 66
+	_mode_label.offset_bottom = 84
+	_mode_label.add_theme_color_override("font_color", Color("#9fe8ff"))
 	_timer_label = _label(root, "99", 40, HORIZONTAL_ALIGNMENT_CENTER)
 	_timer_label.anchor_left = 0.44
 	_timer_label.anchor_right = 0.56
@@ -594,6 +609,7 @@ func _update_hud() -> void:
 		_combo_labels[i].text = ("%d HITS\n%d DMG" % [combo, state[b + L.F_COMBO_DAMAGE]]) if combo >= 2 else ""
 		_round_pips[i].text = "* ".repeat(_round_wins[i]).strip_edges()
 	_timer_label.text = str(int(ceil(state[L.H_TIMER] / 60.0)))
+	_mode_label.text = "EASY  (TAB)" if easy_controls else "PRO  (TAB)"
 	for i in range(2):
 		var b := L.base(i)
 		var sup := state[b + L.F_SUPER]

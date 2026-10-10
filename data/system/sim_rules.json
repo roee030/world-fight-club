@@ -103,5 +103,6 @@
   "burnout_blockstun": 4,
   "throw_tech_window": 10,
   "wall_distance": 7000,
-  "crumple_hitstun": 50
+  "crumple_hitstun": 50,
+  "assist_damage_percent": 80
 }

@@ -618,5 +618,24 @@
         "vy": 700
       }
     }
+  },
+  "auto_combo": {
+    "_doc": "Easy mode: pressing LP again during a connected move's cancel window continues along this route.",
+    "stand": [
+      "5LP",
+      "5LK",
+      "5HP",
+      "214K"
+    ],
+    "crouch": [
+      "2LP",
+      "2LK",
+      "2HP"
+    ],
+    "air": [
+      "j.LP",
+      "j.HP",
+      "j.HK"
+    ]
   }
 }

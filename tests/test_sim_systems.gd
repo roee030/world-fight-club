@@ -26,7 +26,7 @@ func _fail(message: String) -> void:
 
 func _run() -> void:
 	ms = Moveset.compile(["res://data/movesets/universal.json"])
-	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel]:
+	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo]:
 		var error: String = check.call()
 		if error != "":
 			return _fail(error)
@@ -181,4 +181,27 @@ func _special_cancel() -> String:
 	var kinds := _play(s, 60, {1: D | L.IN_LP, 2: D, 3: D, 4: D, 5: D, 6: D, 7: D, 8: D | R, 9: R | L.IN_HP})
 	if not _has(kinds, L.EV_HIT, 0, _move("2LP")): return "2LP must hit"
 	if not _has(kinds, L.EV_SPECIAL, 0, _move("236P")): return "2LP must cancel into the Energy Wave on hit"
+	return ""
+
+
+func _easy_auto_combo() -> String:
+	# Easy controls: mashing LP walks the auto route 5LP > 5LK > 5HP > Rush Kick.
+	var s := Sim.new_match(ms, [{"x": -5200, "easy": true}, {"x": 5200}], 3)
+	var presses := {}
+	for f in range(1, 90, 3): presses[f] = L.IN_LP
+	var kinds := _play(s, 90, presses)
+	var hits := 0
+	for k in range(0, kinds.size(), 3):
+		if kinds[k] == L.EV_HIT and kinds[k + 1] == 0: hits += 1
+	if hits < 4: return "Easy LP mash must auto-combo at least 4 hits (got %d)" % hits
+	if not _has(kinds, L.EV_SPECIAL, 0, _move("214K")): return "the Easy auto-combo must end in the Rush Kick"
+	# Assisted damage: the auto-combo's follow-ups deal 80% (5LP 300 + 5LK 400 * 80%).
+	var easy := Sim.new_match(ms, [{"x": -5200, "easy": true}, {"x": 5200}], 3)
+	_play(easy, 40, {1: L.IN_LP, 8: L.IN_LP})
+	var easy_dealt := 10000 - _f(easy, 1, L.F_HP)
+	var pro := Sim.new_match(ms, [{"x": -5200}, {"x": 5200}], 3)
+	_play(pro, 40, {1: L.IN_LP, 8: L.IN_LK})
+	var pro_dealt := 10000 - _f(pro, 1, L.F_HP)
+	if pro_dealt != 700 or easy_dealt != 300 + 400 * 80 / 100:
+		return "assisted damage: pro %d (expected 700), easy %d (expected 620)" % [pro_dealt, easy_dealt]
 	return ""

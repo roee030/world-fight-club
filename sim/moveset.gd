@@ -15,6 +15,7 @@ var index: Dictionary = {}          # name -> move index
 var by_button: Dictionary = {}      # "stand:LP" -> move index
 var specials: Array[int] = []       # special/super moves, in command priority order
 var named: Dictionary = {}          # "IMPACT", "THROW" -> move index
+var auto_next: Dictionary = {}      # Easy auto-combo: move index -> next move index
 
 const TYPES := {"normal": 0, "special": 1, "super": 2, "drive": 3, "throw": 4}
 const T_NORMAL := 0
@@ -44,6 +45,14 @@ static func compile(moveset_paths: Array) -> RefCounted:
 			if CANCEL_TOKENS.has(target): targets.append(int(CANCEL_TOKENS[target]))
 			elif set.index.has(target): targets.append(int(set.index[target]))
 		move["cancel_into"] = targets
+	for path in moveset_paths:
+		var routes: Dictionary = load_json(path).get("auto_combo", {})
+		for key in routes:
+			if key.begins_with("_"): continue
+			var route: Array = routes[key]
+			for k in range(route.size() - 1):
+				if set.index.has(route[k]) and set.index.has(route[k + 1]):
+					set.auto_next[int(set.index[route[k]])] = int(set.index[route[k + 1]])
 	# Command priority: supers, then longer / more specific motions first.
 	var order := ["236236", "623", "214", "236"]
 	for command in order:
