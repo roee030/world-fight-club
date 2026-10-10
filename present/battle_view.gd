@@ -17,6 +17,7 @@ const PrivateRoster = preload("res://scripts/private_roster.gd")
 const AudioManagerScript = preload("res://scripts/audio/audio_manager.gd")
 const VirtualStickScript = preload("res://scripts/virtual_stick.gd")
 const TouchButtonScript = preload("res://scripts/touch_action_button.gd")
+const SlantBar = preload("res://scripts/hud/slant_bar.gd")
 const Session = preload("res://net/rollback_session.gd")
 const CharacterLoader = preload("res://content/character_loader.gd")
 const TrainingOverlay = preload("res://present/training_overlay.gd")
@@ -65,7 +66,8 @@ var _mode_label: Label
 var headless_inputs: Array = []   # tests: per-frame input pairs
 
 # HUD
-var _hp_bars: Array[ProgressBar] = []
+var _hp_bars: Array = []          # SlantBar per fighter
+var _hp_trails: Array = []        # red damage trail behind each health bar
 var _timer_label: Label
 var _combo_labels: Array[Label] = []
 var _banner: Label
@@ -571,30 +573,29 @@ func _build_hud() -> void:
 		burn.add_theme_color_override("font_color", Color("#ff6a3d"))
 		_burnout_labels.append(burn)
 	for i in range(2):
-		var bar := ProgressBar.new()
+		# Damage trail (drains slowly) under the segmented slanted health bar.
+		var trail = SlantBar.new()
+		trail.max_value = 10000
+		trail.value = 10000
+		trail.fill_color = Color("#ff3b3b")
+		trail.mirrored = i == 1
+		var bar = SlantBar.new()
 		bar.max_value = 10000
 		bar.value = 10000
-		bar.show_percentage = false
-		bar.custom_minimum_size = Vector2(0, 26)
-		var fill := StyleBoxFlat.new()
-		fill.bg_color = Color("#3fd0e0") if i == 0 else Color("#ff5a6a")
-		fill.set_corner_radius_all(4)
-		var bg := StyleBoxFlat.new()
-		bg.bg_color = Color(0, 0, 0, 0.55)
-		bg.set_corner_radius_all(4)
-		bg.border_color = Color(1, 1, 1, 0.5)
-		bg.set_border_width_all(2)
-		bar.add_theme_stylebox_override("fill", fill)
-		bar.add_theme_stylebox_override("background", bg)
-		bar.fill_mode = ProgressBar.FILL_BEGIN_TO_END if i == 0 else ProgressBar.FILL_END_TO_BEGIN
-		if i == 0:
-			bar.anchor_left = 0.03
-			bar.anchor_right = 0.44
-		else:
-			bar.anchor_left = 0.56
-			bar.anchor_right = 0.97
-		bar.offset_top = 22
-		bar.offset_bottom = 48
+		bar.fill_color = Color("#3fe0dc") if i == 0 else Color("#ff6b5a")
+		bar.mirrored = i == 1
+		bar.show_back = false
+		for b in [trail, bar]:
+			if i == 0:
+				b.anchor_left = 0.03
+				b.anchor_right = 0.44
+			else:
+				b.anchor_left = 0.56
+				b.anchor_right = 0.97
+			b.offset_top = 22
+			b.offset_bottom = 50
+		root.add_child(trail)
+		_hp_trails.append(trail)
 		root.add_child(bar)
 		_hp_bars.append(bar)
 		var name_label := _label(root, _name_for(i), 18, HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_RIGHT)
@@ -657,7 +658,7 @@ func _build_touch() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(root)
-	var show := DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios")
+	var show := DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios") or "--touch" in OS.get_cmdline_user_args()
 	_stick = VirtualStickScript.new()
 	root.add_child(_stick)
 	_stick.anchor_top = 1.0
@@ -738,7 +739,12 @@ func _show_banner(text: String, frames: int) -> void:
 func _update_hud() -> void:
 	for i in range(2):
 		var b := L.base(i)
+		_hp_bars[i].max_value = state[b + L.F_HP_MAX]
 		_hp_bars[i].value = state[b + L.F_HP]
+		_hp_trails[i].max_value = state[b + L.F_HP_MAX]
+		# The red trail catches up only after a combo ends (classic damage readout).
+		if state[b + L.F_HITS_TAKEN] == 0 or _hp_trails[i].value < state[b + L.F_HP]:
+			_hp_trails[i].value = move_toward(_hp_trails[i].value, state[b + L.F_HP], 45.0)
 		var combo := state[b + L.F_COMBO]
 		_combo_labels[i].text = ("%d HITS\n%d DMG" % [combo, state[b + L.F_COMBO_DAMAGE]]) if combo >= 2 else ""
 		_round_pips[i].text = "* ".repeat(state[L.H_WINS + i]).strip_edges()
