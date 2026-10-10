@@ -11,6 +11,8 @@ const L = preload("res://sim/layout.gd")
 const Moveset = preload("res://sim/moveset.gd")
 const CharacterView = preload("res://present/character_view.gd")
 const CpuPilot = preload("res://ai/cpu_pilot.gd")
+const SpriteView = preload("res://present/sprite_view.gd")
+const PrivateRoster = preload("res://scripts/private_roster.gd")
 const AudioManagerScript = preload("res://scripts/audio/audio_manager.gd")
 const VirtualStickScript = preload("res://scripts/virtual_stick.gd")
 const TouchButtonScript = preload("res://scripts/touch_action_button.gd")
@@ -33,6 +35,10 @@ var _round := 1
 var _end_timer := 0
 var _intro := 90
 var cpu_controls_player := false
+## A local private fighter (git-ignored private/, e.g. the owner) plays as P1
+## through the 12-pose sprite adapter until it has a rigged 3D model.
+var use_private_fighter := true
+var player_name := "YOU"
 var headless_inputs: Array = []   # tests: per-frame input pairs
 
 # HUD
@@ -124,7 +130,19 @@ func _build_world() -> void:
 	camera.fov = 38.0
 	add_child(camera)
 	camera.current = true
+	var private_ids: Array = PrivateRoster.ids() if use_private_fighter else []
 	for i in range(2):
+		if i == 0 and not private_ids.is_empty():
+			var id: String = private_ids[0]
+			var paths: Array = []
+			for frame in range(12):
+				paths.append(PrivateRoster.sprite_path(id, frame))
+			var sprite_view := SpriteView.new()
+			add_child(sprite_view)
+			sprite_view.setup_frames(paths, float(PrivateRoster.info(id).get("height_m", 1.8)))
+			views.append(sprite_view)
+			player_name = str(PrivateRoster.info(id).get("name", id)).to_upper()
+			continue
 		var view := CharacterView.new()
 		add_child(view)
 		view.setup(MALE if i == 0 else FEMALE, Color(0.85, 0.92, 1.1) if i == 0 else Color(1.1, 0.88, 0.85))
@@ -443,7 +461,7 @@ func _build_hud() -> void:
 		bar.offset_bottom = 48
 		root.add_child(bar)
 		_hp_bars.append(bar)
-		var name_label := _label(root, "YOU" if i == 0 else "CPU", 18, HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_RIGHT)
+		var name_label := _label(root, player_name if i == 0 else "CPU", 18, HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_RIGHT)
 		name_label.anchor_left = bar.anchor_left
 		name_label.anchor_right = bar.anchor_right
 		name_label.offset_top = 50
