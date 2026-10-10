@@ -1,0 +1,33 @@
+{
+  "max_hits": 4,
+  "scaling": [1.0, 0.9, 0.8, 0.7],
+  "finale_relief": 0.5,
+  "routes": {
+    "light": ["light", "heavy", "kick", "special"],
+    "heavy": ["light", "heavy", "kick", "special"],
+    "kick": ["light", "heavy", "kick"]
+  },
+  "breaker": {"cost": 35, "push": 3.4, "invulnerable": 0.45, "double_tap": 0.35},
+  "universal": [
+    {"name": "ONE-TWO", "sequence": ["light", "light"], "finale": "none"},
+    {"name": "QUICK CROSS", "sequence": ["light", "light", "heavy"], "finale": "knockback"},
+    {"name": "POWER LINE", "sequence": ["light", "heavy", "kick"], "finale": "knockdown"},
+    {"name": "HEAVY HANDS", "sequence": ["heavy", "heavy"], "finale": "stagger"},
+    {"name": "SWEEP STRING", "sequence": ["light", "kick"], "finale": "knockback"}
+  ],
+  "signature": {
+    "bibi": {"name": "PROTECTION DETAIL", "sequence": ["light", "light", "heavy", "kick"], "finale": "knockdown", "spark": "#3a7bff"},
+    "bennet": {"name": "PIVOT ROUND", "sequence": ["light", "heavy", "light", "kick"], "finale": "knockback", "spark": "#46dcd8"},
+    "yair_lapid": {"name": "PRIME-TIME COMBO", "sequence": ["light", "light", "light", "heavy"], "finale": "stagger", "spark": "#ffffff"},
+    "benny_gantz": {"name": "CENTRE PUSH", "sequence": ["heavy", "light", "heavy", "kick"], "finale": "knockback", "spark": "#6fa8ff"},
+    "avigdor": {"name": "ULTIMATUM", "sequence": ["heavy", "heavy", "light", "kick"], "finale": "knockdown", "spark": "#ff4d5e"},
+    "mansour_abbas": {"name": "KINGMAKER", "sequence": ["light", "heavy", "heavy", "kick"], "finale": "knockdown", "spark": "#f2c35a"},
+    "gadi_eisenkot": {"name": "CHIEF OF STAFF", "sequence": ["light", "light", "heavy", "heavy"], "finale": "stagger", "spark": "#b8c4a0"},
+    "yair_golan": {"name": "LEFT FLANK", "sequence": ["light", "kick", "light", "heavy"], "finale": "knockback", "spark": "#59f0ff"},
+    "itamar_ben_gvir": {"name": "NATIONAL SECURITY", "sequence": ["heavy", "light", "light", "kick"], "finale": "knockdown", "spark": "#ff9a3c"},
+    "bezalel_smotrich": {"name": "BUDGET CUTS", "sequence": ["light", "heavy", "kick", "kick"], "finale": "knockback", "spark": "#d6a86a"},
+    "aryeh_deri": {"name": "COMEBACK TOUR", "sequence": ["light", "light", "kick", "heavy"], "finale": "stagger", "spark": "#b072ff"},
+    "joint_list": {"name": "SPLIT VOTE", "sequence": ["light", "heavy", "light", "heavy"], "finale": "knockback", "spark": "#3fd6c0"},
+    "trump": {"name": "THE DEAL", "sequence": ["heavy", "heavy", "heavy", "kick"], "finale": "knockdown", "spark": "#f2c35a"}
+  }
+}

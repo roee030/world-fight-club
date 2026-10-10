@@ -1,0 +1,40 @@
+{
+  "families": {
+    "universal_base_characters": {
+      "license": "CC0-1.0",
+      "license_path": "res://assets/characters/rigged/source/universal-base-characters/License_Standard.txt",
+      "source_url": "https://quaternius.itch.io/universal-base-characters",
+      "skeleton_compatibility": "direct-ual-65-bone"
+    }
+  },
+  "fighters": {
+    "bennet": {
+      "scene": "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf",
+      "skeleton_path": "Armature/Skeleton3D",
+      "mesh_paths": ["Armature/Skeleton3D/SuperHero_Male", "Armature/Skeleton3D/Eyes", "Armature/Skeleton3D/Eyebrows"],
+      "forward_axis": "+z",
+      "height": 1.82
+    },
+    "avigdor": {
+      "scene": "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf",
+      "skeleton_path": "Armature/Skeleton3D",
+      "mesh_paths": ["Armature/Skeleton3D/SuperHero_Male", "Armature/Skeleton3D/Eyes", "Armature/Skeleton3D/Eyebrows"],
+      "forward_axis": "+z",
+      "height": 1.82
+    },
+    "bibi": {
+      "scene": "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf",
+      "skeleton_path": "Armature/Skeleton3D",
+      "mesh_paths": ["Armature/Skeleton3D/SuperHero_Male", "Armature/Skeleton3D/Eyes", "Armature/Skeleton3D/Eyebrows"],
+      "forward_axis": "+z",
+      "height": 1.82
+    },
+    "yair_golan": {
+      "scene": "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf",
+      "skeleton_path": "Armature/Skeleton3D",
+      "mesh_paths": ["Armature/Skeleton3D/SuperHero_Male", "Armature/Skeleton3D/Eyes", "Armature/Skeleton3D/Eyebrows"],
+      "forward_axis": "+z",
+      "height": 1.82
+    }
+  }
+}

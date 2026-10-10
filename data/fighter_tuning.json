@@ -1,0 +1,64 @@
+{
+  "_doc": "Per-fighter and global movement tuning. Values are migrated 1:1 from the old if-chains in scripts/fighter.gd; edit here, never in code. Read by scripts/fighter_tuning.gd.",
+  "defaults": {
+    "hp": 100.0,
+    "walk_speed": 3.25,
+    "damage_mult": 1.0,
+    "light_mult": 1.0
+  },
+  "fighters": {
+    "avigdor": {
+      "hp": 112.0,
+      "walk_speed": 2.9,
+      "damage_mult": 1.16
+    },
+    "bibi": {
+      "hp": 104.0,
+      "walk_speed": 3.0,
+      "light_mult": 0.93
+    },
+    "yair_golan": {
+      "hp": 102.0,
+      "walk_speed": 3.35,
+      "damage_mult": 0.96
+    },
+    "mansour_abbas": {
+      "hp": 116.0,
+      "walk_speed": 2.8,
+      "damage_mult": 1.1
+    },
+    "benny_gantz": {
+      "hp": 108.0,
+      "walk_speed": 2.95
+    },
+    "gadi_eisenkot": {
+      "hp": 114.0,
+      "walk_speed": 2.8,
+      "damage_mult": 1.1
+    },
+    "itamar_ben_gvir": {
+      "hp": 98.0,
+      "walk_speed": 3.45
+    },
+    "yair_lapid": {
+      "hp": 96.0,
+      "walk_speed": 3.45,
+      "damage_mult": 0.93
+    },
+    "bezalel_smotrich": {
+      "walk_speed": 3.45,
+      "damage_mult": 0.93
+    }
+  },
+  "motion": {
+    "walk_accel": 48.0,
+    "walk_decel": 70.0,
+    "stun_decel": 18.0,
+    "back_factor": 0.8,
+    "jump_velocity": 6.4,
+    "gravity_rise": 20.0,
+    "gravity_fall": 27.0,
+    "air_drift": 0.15,
+    "air_accel": 20.0
+  }
+}

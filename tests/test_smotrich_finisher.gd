@@ -1,0 +1,26 @@
+extends SceneTree
+
+func _init() -> void:
+	var file := FileAccess.open("res://data/finishers.json", FileAccess.READ)
+	assert(file != null, "Finisher catalog must load")
+	var root = JSON.parse_string(file.get_as_text())
+	var definition: Dictionary = root.get("finishers", {}).get("bezalel_smotrich", {})
+	assert(definition.get("implemented", false), "Smotrich finisher must be implemented")
+	var actors: Array = definition.get("events", []).filter(func(event): return event.get("type") == "spawn_actor")
+	assert(actors.size() == 3, "Cattle charge must use two rear bulls and one central bull")
+	assert(float(actors[0].position[2]) < 0.0 and float(actors[1].position[2]) < 0.0, "Rear cattle must stay in background depth")
+	var hits: Array = definition.get("events", []).filter(func(event): return event.get("type") == "hit")
+	assert(hits.size() == 1 and hits[0].get("id") == "cattle_charge_final" and hits[0].get("final", false), "Central bull must own the only final hit")
+	var celebration: Dictionary = root.get("celebrations", {}).get(str(definition.get("celebration_id", "")), {})
+	var settled: Array = celebration.get("events", []).filter(func(event): return event.get("type") == "spawn_actor")
+	assert(settled.size() == 2, "Celebration must settle two cattle behind the winner")
+	for actor in settled:
+		assert(actor.has("modulate"), "Settled cattle must render as background silhouettes")
+	var actor_script = load("res://scripts/finishers/finisher_actor.gd")
+	var preview = actor_script.new()
+	get_root().add_child(preview)
+	assert(preview.configure(settled[0]), "Silhouette actor must configure from production data")
+	assert(preview.sprite.modulate.a < 1.0 and preview.sprite.modulate.r < 0.2, "Silhouette tint must reach the rendered sprite")
+	preview.free()
+	print("Smotrich cattle finisher contract passes")
+	quit()

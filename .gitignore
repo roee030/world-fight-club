@@ -1,0 +1,20 @@
+.godot/
+.godot-user/
+.playwright-mcp/
+export/
+output/
+tmp/
+tools/blender-portable/
+tools/godot-portable/
+tools/*.zip
+Universal Base Characters*/
+__pycache__/
+*.pyc
+*.import
+*.tmp
+*.blend1
+tools/.goatcounter-token
+
+# Real press photos used only as private art-direction references; never publish them
+assets/characters/references/
+assets/characters/*-reference.png

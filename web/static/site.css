@@ -1,0 +1,15 @@
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:#050810;color:#eef4f5;font:17px/1.7 Heebo,"Segoe UI",Arial,sans-serif}
+main{max-width:760px;margin:0 auto;padding:32px 20px 64px}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.2;color:#f2c35a;margin:.2em 0 .4em}
+h2{font-size:22px;color:#66d9d4;margin:1.6em 0 .4em}
+h3{font-size:18px;margin:1.2em 0 .2em}
+a{color:#7fe3df}
+.cta{display:inline-block;margin:12px 0;padding:12px 28px;border:1px solid #e9bd62;background:linear-gradient(180deg,#f6d57a,#b67d24);color:#2a1a06;font-weight:900;text-decoration:none;letter-spacing:.04em}
+img{max-width:100%;height:auto;border:1px solid rgba(102,217,212,.45)}
+table{border-collapse:collapse;width:100%}
+td,th{border-bottom:1px solid #1d2b38;padding:6px 8px;text-align:start}
+.note{border-inline-start:4px solid #e8b94f;background:rgba(232,185,79,.08);padding:8px 12px;margin:20px 0}
+footer{margin-top:40px;font-size:14px;color:#9fb2b8}
+a:focus-visible{outline:3px solid #f2c35a;outline-offset:3px;border-radius:2px}

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Fight – דאשבורד</title>
+<style>
+:root{--bg:#0f141b;--card:#18202b;--line:#263243;--text:#eef2f6;--mute:#8d9bad;--gold:#e5b944;--green:#46c58a;--red:#e8625a;--blue:#5aa9f0;--bar:#2a3a50}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,"Segoe UI",Arial,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:18px}
+h1{margin:0;font-size:26px;letter-spacing:.5px}
+h1 b{color:var(--gold)}
+.sub{color:var(--mute);font-size:13px}
+h2{font-size:17px;margin:0 0 4px}
+.hint{color:var(--mute);font-size:12.5px;margin:0 0 12px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.kpi .n{font-size:30px;font-weight:700;line-height:1.1}
+.kpi .l{color:var(--mute);font-size:12.5px}
+.kpi .d{font-size:12px;color:var(--gold);margin-top:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.grid2>section{margin:0}
+.row{display:grid;grid-template-columns:130px 1fr 70px;gap:10px;align-items:center;margin:6px 0}
+.row .name{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .v{font-size:13px;text-align:left;direction:ltr;color:var(--mute)}
+.track{background:var(--bar);border-radius:6px;height:14px;overflow:hidden}
+.fill{height:100%;border-radius:6px;background:var(--blue)}
+.fill.g{background:var(--green)}.fill.r{background:var(--red)}.fill.y{background:var(--gold)}
+.split{display:flex;height:14px;border-radius:6px;overflow:hidden;background:var(--bar)}
+.split i{display:block;height:100%}
+.fighters{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:12px}
+.fc{background:#121922;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fc img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover}
+.fc .b{padding:9px 11px 11px}
+.fc .t{font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between;gap:6px}
+.fc .t span{color:var(--gold)}
+.fc .s{font-size:12px;color:var(--mute);display:flex;justify-content:space-between;margin-top:4px}
+.fc .s b{color:var(--text);font-weight:600}
+.rank{position:absolute;margin:6px;background:#000a;border-radius:8px;padding:1px 8px;font-weight:700}
+.fc{position:relative}
+.funnel .row{grid-template-columns:150px 1fr 110px}
+.empty{color:var(--mute);font-size:13px;padding:6px 0}
+.bars{display:flex;align-items:flex-end;gap:3px;height:90px;direction:ltr}
+.bars div{flex:1;background:var(--blue);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.bars div:hover::after{content:attr(data-t);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#000;padding:2px 6px;border-radius:5px;font-size:11px;white-space:nowrap}
+.pill{display:inline-block;background:var(--bar);border-radius:20px;padding:2px 10px;margin:2px;font-size:12.5px}
+footer{color:var(--mute);font-size:12px;margin-top:20px}
+@media(max-width:560px){.row{grid-template-columns:100px 1fr 56px}.funnel .row{grid-template-columns:110px 1fr 90px}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const DATA = __DATA__;
+const NAMES = {bennet:"בנט",avigdor:"ליברמן",bibi:"ביבי",yair_golan:"יאיר גולן",aryeh_deri:"דרעי",yair_lapid:"לפיד",mansour_abbas:"מנסור עבאס",benny_gantz:"גנץ",itamar_ben_gvir:"בן גביר",bezalel_smotrich:"סמוטריץ'",gadi_eisenkot:"איזנקוט",trump:"טראמפ",joint_list:"הרשימה המשותפת"};
+const STAGES = {knesset_exterior:"הכנסת – בחוץ",knesset_chamber:"הכנסת – המליאה",patriots_studio:"הפטריוטים",friday_studio:"אולפן שישי",hatzinor_studio:"הצינור",kaplan_junction:"צומת קפלן"};
+const DIFF = {easy:"קל",normal:"רגיל",hard:"קשה"};
+const C = DATA.counts;
+const sum = p => Object.entries(C).reduce((a,[k,v]) => a + (k.startsWith(p) ? v : 0), 0);
+const list = (p, re) => Object.entries(C).filter(([k]) => k.startsWith(p)).map(([k,v]) => [k.slice(p.length), v]).filter(([k]) => !re || re.test(k)).sort((a,b) => b[1]-a[1]);
+const get = k => C[k] || 0;
+const pct = (a,b) => b ? Math.round(a/b*100) : 0;
+const fmt = n => n.toLocaleString("en-US");
+const nm = id => NAMES[id] || id;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const sessions = sum("session/start/");
+const accepted = get("disclaimer/accepted");
+const quick = get("menu/start-fight"), camp = get("menu/campaign");
+const fights = Math.min(sum("fight/"), sessions);
+const wins = sum("result/") ? list("result/").filter(([k]) => k.endsWith("/win")).reduce((a,[,v]) => a+v, 0) : 0;
+const losses = list("result/").filter(([k]) => k.endsWith("/loss")).reduce((a,[,v]) => a+v, 0);
+const matches = wins + losses;
+const campDone = sum("campaign/complete/");
+const campStarts = sum("campaign/start/");
+const five = get("playtime/05min");
+
+function bars(rows, opts = {}) {
+  if (!rows.length) return '<div class="empty">אין עדיין נתונים</div>';
+  const max = opts.max || Math.max(...rows.map(r => r[1]), 1);
+  const tot = opts.total;
+  return rows.map(([k,v]) => `<div class="row"><div class="name" title="${esc(opts.label ? opts.label(k) : k)}">${esc(opts.label ? opts.label(k) : k)}</div><div class="track"><div class="fill ${opts.cls||""}" style="width:${Math.max(1,v/max*100)}%"></div></div><div class="v">${fmt(v)}${tot ? " · " + pct(v,tot) + "%" : ""}</div></div>`).join("");
+}
+function split(a, b, la, lb) {
+  const t = a + b;
+  if (!t) return '<div class="empty">אין עדיין נתונים</div>';
+  return `<div class="split"><i style="width:${a/t*100}%;background:var(--green)"></i><i style="width:${b/t*100}%;background:var(--red)"></i></div><div class="sub" style="margin-top:4px">${la} ${a} (${pct(a,t)}%) · ${lb} ${b} (${pct(b,t)}%)</div>`;
+}
+const card = (title, hint, body) => `<section><h2>${title}</h2>${hint ? `<p class="hint">${hint}</p>` : ""}${body}</section>`;
+const kpi = (n, l, d) => `<div class="kpi"><div class="n">${n}</div><div class="l">${l}</div>${d ? `<div class="d">${d}</div>` : ""}</div>`;
+
+let h = `<header><h1>WORLD <b>FIGHT</b> · דאשבורד</h1><div class="sub">${esc(DATA.range)} · עודכן ${esc(DATA.generated)}${DATA.demo ? " · <b style='color:var(--red)'>נתוני דמו</b>" : ""}</div></header>`;
+
+h += `<div class="kpis">
+${kpi(fmt(sessions), "אנשים שנכנסו", "מכשיר אחד נספר פעם ביום")}
+${kpi(pct(accepted, sessions) + "%", "אישרו את ההצהרה", fmt(accepted) + " אנשים")}
+${kpi(pct(fights, sessions) + "%", "התחילו קרב לפחות פעם", fmt(fights) + " אנשים")}
+${kpi(fmt(wins), "אנשים שניצחו קרב", fmt(losses) + " אנשים הפסידו (אפשר גם וגם)")}
+${kpi(fmt(campDone), "אנשים שסיימו קמפיין", fmt(campStarts) + " התחילו")}
+${kpi(pct(five, sessions) + "%", "שיחקו 5 דקות ומעלה", fmt(five) + " אנשים")}
+${kpi(fmt(get("linkedin/click")), "אנשים שלחצו על LinkedIn", "")}
+</div>`;
+
+// Funnel
+const fun = [["נכנסו למשחק", sessions], ["אישרו הצהרה", Math.min(accepted, sessions)], ["בחרו מצב (מהיר/קמפיין)", Math.min(quick + camp, sessions)], ["התחילו קרב", fights], ["סיימו קרב", Math.min(matches, fights)], ["סיימו קמפיין", Math.min(campDone, fights)]];
+h += card("מסלול השחקן", "כמה אנשים (ייחודיים) עוברים כל שלב. הירידה הגדולה ביותר היא המקום לשפר.",
+  `<div class="funnel">${fun.map(([l,v],i) => `<div class="row"><div class="name">${l}</div><div class="track"><div class="fill ${i==fun.length-1?"g":"y"}" style="width:${Math.max(1, pct(v, fun[0][1]))}%"></div></div><div class="v">${fmt(v)} · ${pct(v, fun[0][1])}%</div></div>`).join("")}</div>`);
+
+// Fighters
+const ids = Object.keys(NAMES);
+const stat = id => {
+  const picked = list("fight/").filter(([k]) => k.endsWith("/" + id)).reduce((a,[,v]) => a+v, 0);
+  const w = get(`outcome/${id}/win`), l = get(`outcome/${id}/loss`);
+  return {id, picked, faced: get("rival/" + id), w, l, spHit: get(`sp/${id}/hit`), spMiss: get(`sp/${id}/miss`)};
+};
+const fs = ids.map(stat).sort((a,b) => b.picked - a.picked);
+const maxPick = Math.max(...fs.map(f => f.picked), 1), totPick = fs.reduce((a,f) => a + f.picked, 0);
+h += card("השחקנים – מי נבחר ומי מנצח", "כל מספר הוא מספר אנשים ייחודיים (מי ששיחק 10 קרבות עם אותה דמות נספר פעם אחת). אדם שניסה כמה דמויות נספר בכל אחת.",
+  `<div class="fighters">${fs.map((f,i) => `<div class="fc"><span class="rank">#${i+1}</span><img src="${DATA.portraits[f.id]||""}" alt=""><div class="b"><div class="t">${esc(nm(f.id))}<span>${fmt(f.picked)}</span></div><div class="track"><div class="fill y" style="width:${Math.max(1, f.picked/maxPick*100)}%"></div></div>
+  <div class="s"><span>אנשים שבחרו</span><b>${pct(f.picked, totPick)}% מהבחירות</b></div>
+  <div class="s"><span>אנשים שניצחו / סיימו</span><b>${f.w+f.l ? pct(f.w, f.w+f.l) + "%" : "-"} (${f.w}/${f.w+f.l})</b></div>
+  <div class="s"><span>אנשים שנתקלו בו</span><b>${fmt(f.faced)}</b></div>
+  <div class="s"><span>אנשים: סופר פגע / החטיא</span><b>${f.spHit} / ${f.spMiss}</b></div></div></div>`).join("")}</div>`);
+
+// Playtime + leave
+const pt = [1,3,5,10,20,30,60].map(m => [m + " דק'", get("playtime/" + String(m).padStart(2,"0") + "min")]);
+const leaveL = {"in-fight":"באמצע קרב","after-result":"אחרי מסך תוצאה","in-tutorial":"בזמן ההדרכה","campaign":"במסך קמפיין","menu-or-select":"בתפריט / בחירת דמות","settings":"בהגדרות","start-screen":"במסך הפתיחה"};
+h += `<div class="grid2">` +
+  card("כמה זמן משחקים", "כמה כניסות הגיעו לכל אבן דרך (זמן עם המסך פעיל).", bars(pt, {total: sessions, max: sessions||1, cls:"g"})) +
+  card("איפה עוזבים", "המקום האחרון במשחק כשהמסך נסגר או הוחבא. הערה: מי שרק עבר לאפליקציה אחרת נספר גם.", bars(list("leave/"), {label: k => leaveL[k]||k, cls:"r"})) +
+  `</div>`;
+
+// Results
+const modeRow = m => { const w = get(`result/${m}/win`), l = get(`result/${m}/loss`); return `<div style="margin:10px 0"><div class="sub" style="margin-bottom:4px">${m=="quick"?"קרב מהיר":"קמפיין"}</div>${split(w, l, "ניצחונות", "הפסדים")}</div>`; };
+const rEnd = {ko:"נוק-אאוט",timeout:"נגמר הזמן",finisher:"סופר מהלך",time:"נגמר הזמן"};
+h += `<div class="grid2">` +
+  card("ניצחונות והפסדים", "מנקודת המבט של השחקן.", modeRow("quick") + modeRow("campaign")) +
+  card("איך מסתיימים סיבובים", "", bars(list("round/"), {label: k => rEnd[k]||k, total: sum("round/")})) + `</div>`;
+
+// Campaign
+const ladder = list("campaign/won-").map(([k,v]) => [k, v]).sort((a,b) => a[0] < b[0] ? -1 : 1);
+const ladderRows = ladder.map(([k,v]) => { const m = k.match(/(\d+)-of-(\d+)/); return [m ? `ניצחון ${parseInt(m[1])} מתוך ${m[2]}` : k, v]; });
+const campPlayers = list("campaign/complete/");
+h += `<div class="grid2">` +
+  card("קמפיין – עד איפה מגיעים", "כמה אנשים ניצחו בכל שלב בסולם.", `<div class="sub" style="margin-bottom:6px">התחילו ${fmt(campStarts)} · סיימו ${fmt(campDone)} (${pct(campDone, campStarts)}%)</div>` + bars(ladderRows, {cls:"y"})) +
+  card("מי סיים את הקמפיין", "לפי הדמות שהשחקן בחר.", bars(campPlayers, {label: nm, cls:"g"})) + `</div>`;
+
+// Tutorial
+const tutSteps = list("tutorial/step-").sort((a,b) => b[1]-a[1]);
+const skips = list("tutorial/skip-at-");
+h += `<div class="grid2">` +
+  card("הדרכה", `התחילו ${fmt(get("tutorial/start"))} · סיימו ${fmt(get("tutorial/complete"))} (${pct(get("tutorial/complete"), get("tutorial/start"))}%)`, bars(tutSteps.map(([k,v]) => ["שלב: " + k, v]), {max: get("tutorial/start")||1, cls:"y"})) +
+  card("איפה מדלגים על ההדרכה", "", bars(skips.map(([k,v]) => ["בשלב: " + k, v]), {cls:"r"})) + `</div>`;
+
+// Game systems
+const combos = list("combo/", /^(?!hits-|break-)/).slice(0, 8);
+const hits = list("combo/hits-").sort((a,b) => parseInt(a[0]) - parseInt(b[0])).map(([k,v]) => [k + " פגיעות", v]);
+const spReady = get("sp-press/ready"), spNot = get("sp-press/not-ready");
+const spHit = sum("sp/") ? list("sp/").filter(([k]) => k.endsWith("/hit")).reduce((a,[,v]) => a+v, 0) : 0;
+const spMiss = list("sp/").filter(([k]) => k.endsWith("/miss")).reduce((a,[,v]) => a+v, 0);
+h += `<div class="grid2">` +
+  card("סופר מהלך (SP)", "האם מבינים את הכפתור ופוגעים איתו.",
+    `<div class="sub" style="margin-bottom:4px">לחיצות כשהכפתור היה מוכן / לא מוכן</div>${split(spReady, spNot, "מוכן", "לא מוכן")}<div class="sub" style="margin:12px 0 4px">מהלכים שהופעלו: פגעו / החטיאו</div>${split(spHit, spMiss, "פגעו", "החטיאו")}`) +
+  card("קומבואים", "הקומבואים הנפוצים ואורך שרשרת הפגיעות.", bars(combos, {label: k => k.replace(/-/g," ")}) + `<div style="height:8px"></div>` + bars(hits, {cls:"y"}) +
+    `<div class="sub" style="margin-top:8px">שבירת קומבו: ע"י השחקן ${get("combo/break-player")} · ע"י המחשב ${get("combo/break-cpu")}</div>`) + `</div>`;
+
+// Choices
+const stagesRows = list("stage/");
+const diffRows = list("settings/difficulty/");
+const lvl = list("level/");
+h += `<div class="grid2">` +
+  card("זירות", "באיזה אולפן נלחמים.", bars(stagesRows, {label: k => STAGES[k]||k, total: sum("stage/")})) +
+  card("יריבים (מי מקבל מכות)", "כמה פעמים כל דמות הופיעה כיריב.", bars(list("rival/"), {label: nm, total: sum("rival/"), cls:"r"})) + `</div>`;
+h += `<div class="grid2">` +
+  card("רמת קושי", "מה בוחרים בהגדרות.", bars(diffRows, {label: k => DIFF[k]||k, total: sum("settings/difficulty/")})) +
+  card("עוד", "", `<span class="pill">קרב מהיר: ${fmt(quick)}</span><span class="pill">קמפיין: ${fmt(camp)}</span><span class="pill">משחק חוזר: ${fmt(get("menu/rematch"))}</span><span class="pill">יריב חדש: ${fmt(get("menu/new-opponent"))}</span><span class="pill">פתחו הצהרה: ${fmt(get("settings/disclaimer"))}</span><span class="pill">השתיקו קול: ${fmt(get("sound/muted"))}</span><span class="pill">החזירו קול: ${fmt(get("sound/on"))}</span>`) + `</div>`;
+
+// Audience
+const dev = list("session/start/");
+const side = (title, arr) => card(title, "", bars((arr||[]).map(r => [r.name, r.count]), {total: (arr||[]).reduce((a,r) => a + r.count, 0)}));
+h += `<div class="grid2">` +
+  card("מכשירים", "מגע = טלפון/טאבלט.", bars(dev, {label: k => k=="touch"?"מגע (נייד)":"מחשב"})) +
+  side("מערכת הפעלה", DATA.systems) + side("דפדפן", DATA.browsers) + side("מדינה", DATA.locations) + side("גודל מסך", DATA.sizes) + `</div>`;
+
+// Daily trend
+if (DATA.daily && DATA.daily.length) {
+  const mx = Math.max(...DATA.daily.map(d => d[1]), 1);
+  h += card("כניסות לפי יום", "", `<div class="bars">${DATA.daily.map(([d,v]) => `<div style="height:${Math.max(2, v/mx*100)}%" data-t="${d}: ${v}"></div>`).join("")}</div><div class="sub" style="display:flex;justify-content:space-between;direction:ltr;margin-top:4px"><span>${DATA.daily[0][0]}</span><span>${DATA.daily[DATA.daily.length-1][0]}</span></div>`);
+}
+
+h += `<footer>GoatCounter סופר אנשים ייחודיים לכל פעולה (אנונימי, בלי עוגיות), לא את מספר הפעמים. מכשיר שחוזר באותו יום נספר פעם אחת. לכן "כמה קרבות שוחקו" לא ניתן למדידה כאן, אלא "כמה אנשים עשו X".</footer>`;
+document.getElementById("app").innerHTML = h;
+</script>
+</body>
+</html>

@@ -1,0 +1,3208 @@
+{
+  "finishers": {
+    "bennet": {
+      "fighter_id": "bennet",
+      "finisher_id": "startup_exit",
+      "display_name": "STARTUP EXIT",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 3.2,
+      "camera_preset": "close_side",
+      "events": [
+        {
+          "at": 0.0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.35,
+          "type": "spawn_prop",
+          "id": "open_laptop",
+          "asset": "res://assets/finishers/bennet/props/laptop-kit.png",
+          "region": [
+            768,
+            0,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0015,
+          "anchor": "attacker",
+          "position": [
+            0.3,
+            1.05,
+            0.2
+          ]
+        },
+        {
+          "at": 0.35,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/boot.wav"
+        },
+        {
+          "at": 0.7,
+          "type": "cleanup"
+        },
+        {
+          "at": 0.75,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/bennet/celebration/pose-kit.png",
+          "region": [
+            0,
+            0,
+            1030,
+            887
+          ],
+          "figure_height_px": 834,
+          "foot_baseline": 869
+        },
+        {
+          "at": 0.9,
+          "type": "spawn_prop",
+          "id": "laptop",
+          "asset": "res://assets/finishers/bennet/props/laptop-kit.png",
+          "region": [
+            0,
+            0,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0018,
+          "anchor": "attacker",
+          "position": [
+            0.5,
+            1.1,
+            0.2
+          ]
+        },
+        {
+          "at": 1.1,
+          "type": "launch_prop",
+          "id": "laptop",
+          "target": "defender",
+          "duration": 0.45
+        },
+        {
+          "at": 1.1,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/throw.wav"
+        },
+        {
+          "at": 1.55,
+          "type": "hit",
+          "id": "startup_exit_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 1.55,
+          "type": "camera_impact",
+          "strength": 0.25
+        },
+        {
+          "at": 1.55,
+          "type": "spawn_prop",
+          "id": "pixel_impact",
+          "asset": "res://assets/finishers/bennet/props/laptop-kit.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0022,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.0,
+            0.3
+          ]
+        },
+        {
+          "at": 1.55,
+          "type": "caption",
+          "text": "SYSTEM ERROR",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 1.55,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.0,
+          "type": "cleanup"
+        },
+        {
+          "at": 2.25,
+          "type": "celebration_start"
+        }
+      ],
+      "celebration_id": "exit_success"
+    },
+    "bibi": {
+      "fighter_id": "bibi",
+      "finisher_id": "family_business",
+      "display_name": "FAMILY BUSINESS",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 4.2,
+      "camera_preset": "wide_stage",
+      "celebration_id": "family_business_victory",
+      "events": [
+        {
+          "at": 0.0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.4,
+          "type": "spawn_actor",
+          "id": "sarah",
+          "asset": "res://assets/finishers/bibi/actors/family-assists.png",
+          "region": [
+            0,
+            0,
+            710,
+            725
+          ],
+          "pixel_scale": 0.0026,
+          "grounded": true,
+          "foot_baseline": 694,
+          "anchor": "attacker",
+          "position": [
+            -1.3,
+            0,
+            -0.15
+          ]
+        },
+        {
+          "at": 0.8,
+          "type": "spawn_prop",
+          "id": "sound_wave_one",
+          "asset": "res://assets/finishers/bibi/celebration/family-tableau.png",
+          "region": [
+            1340,
+            0,
+            747,
+            753
+          ],
+          "pixel_scale": 0.0011,
+          "anchor": "attacker",
+          "position": [
+            -0.8,
+            1.35,
+            0.2
+          ]
+        },
+        {
+          "at": 0.8,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/boot.wav"
+        },
+        {
+          "at": 0.9,
+          "type": "launch_prop",
+          "id": "sound_wave_one",
+          "target": "defender",
+          "duration": 0.35
+        },
+        {
+          "at": 1.25,
+          "type": "hit",
+          "id": "family_voice_one",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.25,
+          "type": "camera_impact",
+          "strength": 0.1
+        },
+        {
+          "at": 1.5,
+          "type": "spawn_prop",
+          "id": "sound_wave_two",
+          "asset": "res://assets/finishers/bibi/celebration/family-tableau.png",
+          "region": [
+            1340,
+            0,
+            747,
+            753
+          ],
+          "pixel_scale": 0.0013,
+          "anchor": "attacker",
+          "position": [
+            -0.8,
+            1.35,
+            0.25
+          ]
+        },
+        {
+          "at": 1.5,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/boot.wav"
+        },
+        {
+          "at": 1.6,
+          "type": "launch_prop",
+          "id": "sound_wave_two",
+          "target": "defender",
+          "duration": 0.35
+        },
+        {
+          "at": 1.95,
+          "type": "hit",
+          "id": "family_voice_two",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.95,
+          "type": "camera_impact",
+          "strength": 0.1
+        },
+        {
+          "at": 2.2,
+          "type": "cleanup"
+        },
+        {
+          "at": 2.25,
+          "type": "spawn_actor",
+          "id": "yair_assist",
+          "asset": "res://assets/finishers/bibi/actors/family-assists.png",
+          "region": [
+            710,
+            0,
+            815,
+            725
+          ],
+          "pixel_scale": 0.0027,
+          "grounded": true,
+          "foot_baseline": 703,
+          "anchor": "attacker",
+          "position": [
+            -0.4,
+            0,
+            0.25
+          ]
+        },
+        {
+          "at": 2.35,
+          "type": "move_actor",
+          "id": "yair_assist",
+          "anchor": "attacker",
+          "position": [
+            0.95,
+            0,
+            0.25
+          ],
+          "duration": 0.6
+        },
+        {
+          "at": 2.95,
+          "type": "hit",
+          "id": "family_business_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.95,
+          "type": "camera_impact",
+          "strength": 0.25
+        },
+        {
+          "at": 2.95,
+          "type": "screen_flash"
+        },
+        {
+          "at": 2.95,
+          "type": "caption",
+          "text": "FAMILY BUSINESS",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 2.95,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 3.6,
+          "type": "celebration_start"
+        }
+      ]
+    },
+    "yair_lapid": {
+      "fighter_id": "yair_lapid",
+      "finisher_id": "prime_time_rush",
+      "display_name": "PRIME TIME RUSH",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 3.2,
+      "camera_preset": "close_side",
+      "celebration_id": "prime_time_rush_victory",
+      "events": [
+        {
+          "at": 0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.57,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_lapid/poses/boxing-kit.png",
+          "region": [
+            0,
+            0,
+            850,
+            724
+          ],
+          "figure_height_px": 658,
+          "foot_baseline": 707
+        },
+        {
+          "at": 0.65,
+          "type": "hit",
+          "id": "prime_time_cross_1",
+          "damage": 1,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 0.65,
+          "type": "caption",
+          "text": "1 HIT COMBO",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.65,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 0.65,
+          "type": "spawn_prop",
+          "id": "boxing_impact_1",
+          "asset": "res://assets/finishers/bennet/props/laptop-kit.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0008,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.35,
+            0.3
+          ]
+        },
+        {
+          "at": 0.77,
+          "type": "cleanup"
+        },
+        {
+          "at": 0.82,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_lapid/poses/boxing-kit.png",
+          "region": [
+            0,
+            0,
+            850,
+            724
+          ],
+          "figure_height_px": 658,
+          "foot_baseline": 707
+        },
+        {
+          "at": 0.9,
+          "type": "hit",
+          "id": "prime_time_cross_2",
+          "damage": 1,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 0.9,
+          "type": "caption",
+          "text": "2 HIT COMBO",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.9,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 0.9,
+          "type": "spawn_prop",
+          "id": "boxing_impact_2",
+          "asset": "res://assets/finishers/bennet/props/laptop-kit.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0008,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.35,
+            0.3
+          ]
+        },
+        {
+          "at": 1.02,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.07,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_lapid/poses/boxing-kit.png",
+          "region": [
+            0,
+            0,
+            850,
+            724
+          ],
+          "figure_height_px": 658,
+          "foot_baseline": 707
+        },
+        {
+          "at": 1.15,
+          "type": "hit",
+          "id": "prime_time_cross_3",
+          "damage": 1,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.15,
+          "type": "caption",
+          "text": "3 HIT COMBO",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 1.15,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.15,
+          "type": "spawn_prop",
+          "id": "boxing_impact_3",
+          "asset": "res://assets/finishers/bennet/props/laptop-kit.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0008,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.35,
+            0.3
+          ]
+        },
+        {
+          "at": 1.27,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.32,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_lapid/poses/boxing-kit.png",
+          "region": [
+            0,
+            0,
+            850,
+            724
+          ],
+          "figure_height_px": 658,
+          "foot_baseline": 707
+        },
+        {
+          "at": 1.4,
+          "type": "hit",
+          "id": "prime_time_cross_4",
+          "damage": 1,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.4,
+          "type": "caption",
+          "text": "4 HIT COMBO",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 1.4,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.4,
+          "type": "spawn_prop",
+          "id": "boxing_impact_4",
+          "asset": "res://assets/finishers/bennet/props/laptop-kit.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0008,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.35,
+            0.3
+          ]
+        },
+        {
+          "at": 1.52,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.57,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_lapid/poses/boxing-kit.png",
+          "region": [
+            0,
+            0,
+            850,
+            724
+          ],
+          "figure_height_px": 658,
+          "foot_baseline": 707
+        },
+        {
+          "at": 1.65,
+          "type": "hit",
+          "id": "prime_time_cross_5",
+          "damage": 1,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.65,
+          "type": "caption",
+          "text": "5 HIT COMBO",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 1.65,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.65,
+          "type": "spawn_prop",
+          "id": "boxing_impact_5",
+          "asset": "res://assets/finishers/bennet/props/laptop-kit.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0008,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.35,
+            0.3
+          ]
+        },
+        {
+          "at": 1.77,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.92,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_lapid/poses/boxing-kit.png",
+          "region": [
+            850,
+            0,
+            630,
+            724
+          ],
+          "figure_height_px": 600,
+          "foot_baseline": 708
+        },
+        {
+          "at": 1.92,
+          "type": "camera_preset",
+          "preset": "close_side"
+        },
+        {
+          "at": 2.15,
+          "type": "hit",
+          "id": "prime_time_uppercut_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.15,
+          "type": "camera_impact",
+          "strength": 0.25
+        },
+        {
+          "at": 2.15,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.15,
+          "type": "caption",
+          "text": "6 HIT UPPERCUT",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 2.7,
+          "type": "celebration_start"
+        }
+      ]
+    },
+    "benny_gantz": {
+      "fighter_id": "benny_gantz",
+      "finisher_id": "independence_flag",
+      "display_name": "INDEPENDENCE FLAG",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 3.4,
+      "camera_preset": "wide_stage",
+      "celebration_id": "independence_flag_victory",
+      "events": [
+        {
+          "at": 0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.45,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/benny_gantz/poses/flag-kit.png",
+          "region": [
+            930,
+            0,
+            600,
+            724
+          ],
+          "figure_height_px": 624,
+          "foot_baseline": 710
+        },
+        {
+          "at": 0.45,
+          "type": "caption",
+          "text": "INDEPENDENCE DAY",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 1.1,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.15,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/benny_gantz/poses/flag-strike.png",
+          "figure_height_px": 739,
+          "foot_baseline": 979
+        },
+        {
+          "at": 1.15,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/throw.wav"
+        },
+        {
+          "at": 1.65,
+          "type": "hit",
+          "id": "independence_flag_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 1.65,
+          "type": "camera_impact",
+          "strength": 0.25
+        },
+        {
+          "at": 1.65,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.7,
+          "type": "spawn_prop",
+          "id": "impact_confetti",
+          "asset": "res://assets/finishers/benny_gantz/poses/flag-kit.png",
+          "region": [
+            1530,
+            0,
+            642,
+            724
+          ],
+          "pixel_scale": 0.0022,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.3,
+            0.2
+          ]
+        },
+        {
+          "at": 2.6,
+          "type": "celebration_start"
+        }
+      ]
+    },
+    "avigdor": {
+      "fighter_id": "avigdor",
+      "finisher_id": "oil_barrel_48",
+      "display_name": "48-HOUR COUNTDOWN",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 3.5,
+      "camera_preset": "wide_stage",
+      "events": [
+        {
+          "at": 0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.3,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/avigdor/atlas/oil-barrel-kit.png",
+          "region": [
+            0,
+            0,
+            760,
+            724
+          ],
+          "figure_height_px": 553,
+          "foot_baseline": 688
+        },
+        {
+          "at": 0.5,
+          "type": "spawn_prop",
+          "id": "oil_barrel",
+          "asset": "res://assets/finishers/avigdor/atlas/oil-barrel-kit.png",
+          "region": [
+            760,
+            0,
+            425,
+            724
+          ],
+          "pixel_scale": 0.0026,
+          "anchor": "attacker",
+          "position": [
+            0.65,
+            0.45,
+            0.2
+          ]
+        },
+        {
+          "at": 0.6,
+          "type": "move_actor",
+          "id": "oil_barrel",
+          "anchor": "attacker",
+          "position": [
+            1.0,
+            0.5,
+            0.2
+          ],
+          "duration": 0.3
+        },
+        {
+          "at": 0.65,
+          "type": "caption",
+          "text": "48:00",
+          "clock_from": 2880,
+          "clock_to": 0,
+          "duration": 1.5,
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.95,
+          "type": "camera_preset",
+          "preset": "projectile_track"
+        },
+        {
+          "at": 1.0,
+          "type": "launch_prop",
+          "id": "oil_barrel",
+          "target": "defender",
+          "duration": 1.15
+        },
+        {
+          "at": 1.0,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/throw.wav"
+        },
+        {
+          "at": 2.15,
+          "type": "hit",
+          "id": "oil_barrel_48_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.15,
+          "type": "cleanup"
+        },
+        {
+          "at": 2.15,
+          "type": "spawn_prop",
+          "id": "oil_blast",
+          "asset": "res://assets/finishers/avigdor/atlas/oil-barrel-kit.png",
+          "region": [
+            1185,
+            0,
+            620,
+            724
+          ],
+          "pixel_scale": 0.003,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.05,
+            0.3
+          ]
+        },
+        {
+          "at": 2.15,
+          "type": "screen_flash"
+        },
+        {
+          "at": 2.15,
+          "type": "camera_impact",
+          "strength": 0.25
+        },
+        {
+          "at": 2.15,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.15,
+          "type": "caption",
+          "text": "00:00",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 2.7,
+          "type": "cleanup"
+        },
+        {
+          "at": 3.0,
+          "type": "celebration_start"
+        }
+      ],
+      "celebration_id": "oil_barrel_48_victory"
+    },
+    "mansour_abbas": {
+      "fighter_id": "mansour_abbas",
+      "finisher_id": "coalition_cashstorm",
+      "display_name": "COALITION CASHSTORM",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 3.6,
+      "camera_preset": "wide_stage",
+      "events": [
+        {
+          "at": 0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.35,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/mansour_abbas/atlas/cashstorm-kit-v2.png",
+          "region": [
+            0,
+            0,
+            768,
+            512
+          ],
+          "figure_height_px": 473,
+          "foot_baseline": 501
+        },
+        {
+          "at": 0.65,
+          "type": "spawn_prop",
+          "id": "cash_rain_1",
+          "asset": "res://assets/finishers/mansour_abbas/atlas/cashstorm-kit-v2.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0024,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.5,
+            0.2
+          ]
+        },
+        {
+          "at": 0.8,
+          "type": "hit",
+          "id": "cashstorm_stagger_1",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 0.8,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/throw.wav"
+        },
+        {
+          "at": 1.1500000000000001,
+          "type": "spawn_prop",
+          "id": "cash_rain_2",
+          "asset": "res://assets/finishers/mansour_abbas/atlas/cashstorm-kit-v2.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0024,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.5,
+            0.2
+          ]
+        },
+        {
+          "at": 1.3,
+          "type": "hit",
+          "id": "cashstorm_stagger_2",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.3,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/throw.wav"
+        },
+        {
+          "at": 1.6500000000000001,
+          "type": "spawn_prop",
+          "id": "cash_rain_3",
+          "asset": "res://assets/finishers/mansour_abbas/atlas/cashstorm-kit-v2.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0024,
+          "anchor": "defender",
+          "position": [
+            0,
+            1.5,
+            0.2
+          ]
+        },
+        {
+          "at": 1.8,
+          "type": "hit",
+          "id": "cashstorm_stagger_3",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.8,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/throw.wav"
+        },
+        {
+          "at": 2,
+          "type": "cleanup"
+        },
+        {
+          "at": 2.05,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/mansour_abbas/atlas/cashstorm-kit-v2.png",
+          "region": [
+            0,
+            0,
+            768,
+            512
+          ],
+          "figure_height_px": 473,
+          "foot_baseline": 501
+        },
+        {
+          "at": 2.1,
+          "type": "spawn_prop",
+          "id": "cash_bundle",
+          "asset": "res://assets/finishers/mansour_abbas/atlas/cashstorm-kit-v2.png",
+          "region": [
+            768,
+            0,
+            768,
+            470
+          ],
+          "pixel_scale": 0.004,
+          "anchor": "attacker",
+          "position": [
+            0.65,
+            1.25,
+            0.25
+          ]
+        },
+        {
+          "at": 2.2,
+          "type": "launch_prop",
+          "id": "cash_bundle",
+          "target": "defender",
+          "duration": 0.45
+        },
+        {
+          "at": 2.65,
+          "type": "hit",
+          "id": "cashstorm_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.65,
+          "type": "camera_impact",
+          "strength": 0.22
+        },
+        {
+          "at": 2.65,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.65,
+          "type": "caption",
+          "text": "CASH OUT",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 3.05,
+          "type": "celebration_start"
+        }
+      ],
+      "celebration_id": "coalition_cashstorm_victory"
+    },
+    "gadi_eisenkot": {
+      "fighter_id": "gadi_eisenkot",
+      "finisher_id": "bazooka_command",
+      "display_name": "BAZOOKA COMMAND",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 3.7,
+      "camera_preset": "wide_stage",
+      "celebration_id": "bazooka_command_victory",
+      "events": [
+        {
+          "at": 0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.45,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/gadi_eisenkot/poses/bazooka-kit.png",
+          "region": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "figure_height_px": 405,
+          "foot_baseline": 548
+        },
+        {
+          "at": 0.9,
+          "type": "camera_preset",
+          "preset": "projectile_track"
+        },
+        {
+          "at": 1.05,
+          "type": "spawn_prop",
+          "id": "bazooka_rocket",
+          "asset": "res://assets/finishers/gadi_eisenkot/poses/bazooka-kit.png",
+          "region": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0014,
+          "anchor": "attacker",
+          "position": [
+            0.85,
+            1.2,
+            0.2
+          ]
+        },
+        {
+          "at": 1.1,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/throw.wav"
+        },
+        {
+          "at": 1.1,
+          "type": "launch_prop",
+          "id": "bazooka_rocket",
+          "target": "defender",
+          "duration": 0.55
+        },
+        {
+          "at": 1.65,
+          "type": "hit",
+          "id": "bazooka_command_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 1.65,
+          "type": "camera_impact",
+          "strength": 0.28
+        },
+        {
+          "at": 1.65,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.65,
+          "type": "spawn_prop",
+          "id": "bazooka_blast",
+          "asset": "res://assets/finishers/gadi_eisenkot/poses/bazooka-kit.png",
+          "region": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0024,
+          "anchor": "defender",
+          "position": [
+            0,
+            1,
+            0.3
+          ]
+        },
+        {
+          "at": 1.65,
+          "type": "caption",
+          "text": "COMMAND COMPLETE",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 2.3,
+          "type": "cleanup"
+        },
+        {
+          "at": 2.8,
+          "type": "celebration_start"
+        }
+      ]
+    },
+    "yair_golan": {
+      "fighter_id": "yair_golan",
+      "finisher_id": "m16_burst",
+      "display_name": "FIELD COMMAND",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 3.5,
+      "camera_preset": "wide_stage",
+      "celebration_id": "m16_burst_victory",
+      "events": [
+        {
+          "at": 0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.45,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_golan/poses/m16-kit.png",
+          "region": [
+            0,
+            0,
+            850,
+            724
+          ],
+          "figure_height_px": 676,
+          "foot_baseline": 702
+        },
+        {
+          "at": 0.95,
+          "type": "spawn_prop",
+          "id": "m16_flash_1",
+          "asset": "res://assets/finishers/yair_golan/poses/m16-kit.png",
+          "region": [
+            1500,
+            0,
+            672,
+            362
+          ],
+          "pixel_scale": 0.001,
+          "anchor": "attacker",
+          "position": [
+            0.95,
+            1.45,
+            0.2
+          ]
+        },
+        {
+          "at": 0.95,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.05,
+          "type": "hit",
+          "id": "m16_stagger_1",
+          "damage": 2,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.05,
+          "type": "camera_impact",
+          "strength": 0.08
+        },
+        {
+          "at": 1.2,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.32,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_golan/poses/m16-kit.png",
+          "region": [
+            0,
+            0,
+            850,
+            724
+          ],
+          "figure_height_px": 676,
+          "foot_baseline": 702
+        },
+        {
+          "at": 1.4,
+          "type": "spawn_prop",
+          "id": "m16_flash_2",
+          "asset": "res://assets/finishers/yair_golan/poses/m16-kit.png",
+          "region": [
+            1500,
+            0,
+            672,
+            362
+          ],
+          "pixel_scale": 0.001,
+          "anchor": "attacker",
+          "position": [
+            0.95,
+            1.45,
+            0.2
+          ]
+        },
+        {
+          "at": 1.4,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.5,
+          "type": "hit",
+          "id": "m16_stagger_2",
+          "damage": 2,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.5,
+          "type": "camera_impact",
+          "strength": 0.08
+        },
+        {
+          "at": 1.65,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.8,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_golan/poses/m16-kit.png",
+          "region": [
+            0,
+            0,
+            850,
+            724
+          ],
+          "figure_height_px": 676,
+          "foot_baseline": 702
+        },
+        {
+          "at": 1.95,
+          "type": "spawn_prop",
+          "id": "m16_final_flash",
+          "asset": "res://assets/finishers/yair_golan/poses/m16-kit.png",
+          "region": [
+            1500,
+            362,
+            672,
+            362
+          ],
+          "pixel_scale": 0.0015,
+          "anchor": "attacker",
+          "position": [
+            0.95,
+            1.45,
+            0.2
+          ]
+        },
+        {
+          "at": 1.95,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/throw.wav"
+        },
+        {
+          "at": 2.05,
+          "type": "hit",
+          "id": "m16_burst_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.05,
+          "type": "camera_impact",
+          "strength": 0.2
+        },
+        {
+          "at": 2.05,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.05,
+          "type": "caption",
+          "text": "BURST COMPLETE",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 2.5,
+          "type": "cleanup"
+        },
+        {
+          "at": 2.75,
+          "type": "celebration_start"
+        }
+      ]
+    },
+    "itamar_ben_gvir": {
+      "fighter_id": "itamar_ben_gvir",
+      "finisher_id": "crocodile_release",
+      "display_name": "CROCODILE RELEASE",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 4.0,
+      "camera_preset": "wide_stage",
+      "events": [
+        {
+          "at": 0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.35,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "figure_height_px": 547,
+          "foot_baseline": 602
+        },
+        {
+          "at": 0.65,
+          "type": "spawn_actor",
+          "id": "crocodile_1",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0025,
+          "grounded": true,
+          "foot_baseline": 513,
+          "anchor": "attacker",
+          "position": [
+            -0.7,
+            0,
+            0.2
+          ]
+        },
+        {
+          "at": 0.75,
+          "type": "move_actor",
+          "id": "crocodile_1",
+          "anchor": "defender",
+          "position": [
+            -0.35,
+            0,
+            0.25
+          ],
+          "duration": 0.45
+        },
+        {
+          "at": 1.2000000000000002,
+          "type": "hit",
+          "id": "crocodile_hit_1",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.2000000000000002,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.35,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.37,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "figure_height_px": 547,
+          "foot_baseline": 602
+        },
+        {
+          "at": 1.45,
+          "type": "spawn_actor",
+          "id": "crocodile_2",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0025,
+          "grounded": true,
+          "foot_baseline": 513,
+          "anchor": "attacker",
+          "position": [
+            -0.7,
+            0,
+            0.2
+          ]
+        },
+        {
+          "at": 1.55,
+          "type": "move_actor",
+          "id": "crocodile_2",
+          "anchor": "defender",
+          "position": [
+            -0.35,
+            0,
+            0.25
+          ],
+          "duration": 0.45
+        },
+        {
+          "at": 2.0,
+          "type": "hit",
+          "id": "crocodile_hit_2",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 2.0,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.15,
+          "type": "cleanup"
+        },
+        {
+          "at": 2.17,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "figure_height_px": 547,
+          "foot_baseline": 602
+        },
+        {
+          "at": 2.25,
+          "type": "spawn_actor",
+          "id": "crocodile_3",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0025,
+          "grounded": true,
+          "foot_baseline": 513,
+          "anchor": "attacker",
+          "position": [
+            -0.7,
+            0,
+            0.2
+          ]
+        },
+        {
+          "at": 2.35,
+          "type": "move_actor",
+          "id": "crocodile_3",
+          "anchor": "defender",
+          "position": [
+            -0.35,
+            0,
+            0.25
+          ],
+          "duration": 0.45
+        },
+        {
+          "at": 2.8,
+          "type": "hit",
+          "id": "crocodile_hit_3",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.8,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.8,
+          "type": "camera_impact",
+          "strength": 0.2
+        },
+        {
+          "at": 3.4,
+          "type": "celebration_start"
+        }
+      ],
+      "celebration_id": "crocodile_release_victory"
+    },
+    "bezalel_smotrich": {
+      "fighter_id": "bezalel_smotrich",
+      "finisher_id": "cattle_charge",
+      "display_name": "CATTLE CHARGE",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 4.1,
+      "camera_preset": "wide_stage",
+      "celebration_id": "cattle_charge_victory",
+      "events": [
+        {
+          "at": 0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.35,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/bezalel_smotrich/poses/cattle-kit.png",
+          "region": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "figure_height_px": 456,
+          "foot_baseline": 567
+        },
+        {
+          "at": 0.35,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/boot.wav"
+        },
+        {
+          "at": 0.65,
+          "type": "spawn_actor",
+          "id": "herd_back_one",
+          "asset": "res://assets/finishers/bezalel_smotrich/poses/cattle-kit.png",
+          "region": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0025,
+          "grounded": true,
+          "foot_baseline": 510,
+          "anchor": "attacker",
+          "position": [
+            -2,
+            0,
+            -0.75
+          ]
+        },
+        {
+          "at": 0.7,
+          "type": "move_actor",
+          "id": "herd_back_one",
+          "anchor": "defender",
+          "position": [
+            1.6,
+            0,
+            -0.75
+          ],
+          "duration": 1
+        },
+        {
+          "at": 1,
+          "type": "spawn_actor",
+          "id": "herd_back_two",
+          "asset": "res://assets/finishers/bezalel_smotrich/poses/cattle-kit.png",
+          "region": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0022,
+          "grounded": true,
+          "foot_baseline": 510,
+          "anchor": "attacker",
+          "position": [
+            -2.2,
+            0,
+            -1
+          ]
+        },
+        {
+          "at": 1.05,
+          "type": "move_actor",
+          "id": "herd_back_two",
+          "anchor": "defender",
+          "position": [
+            1.8,
+            0,
+            -1
+          ],
+          "duration": 1
+        },
+        {
+          "at": 1.25,
+          "type": "spawn_actor",
+          "id": "central_bull",
+          "asset": "res://assets/finishers/bezalel_smotrich/poses/cattle-kit.png",
+          "region": [
+            627,
+            0,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0038,
+          "grounded": true,
+          "foot_baseline": 510,
+          "anchor": "attacker",
+          "position": [
+            -1.6,
+            0,
+            0.15
+          ]
+        },
+        {
+          "at": 1.3,
+          "type": "move_actor",
+          "id": "central_bull",
+          "anchor": "defender",
+          "position": [
+            0,
+            0,
+            0.15
+          ],
+          "duration": 0.85
+        },
+        {
+          "at": 1.3,
+          "type": "spawn_prop",
+          "id": "herd_dust",
+          "asset": "res://assets/finishers/bezalel_smotrich/effects/dust.png",
+          "pixel_scale": 0.00065,
+          "grounded": true,
+          "foot_baseline": 734,
+          "anchor": "defender",
+          "position": [
+            0,
+            0,
+            0.35
+          ]
+        },
+        {
+          "at": 2.15,
+          "type": "hit",
+          "id": "cattle_charge_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.15,
+          "type": "camera_impact",
+          "strength": 0.25
+        },
+        {
+          "at": 2.15,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.15,
+          "type": "caption",
+          "text": "CATTLE CHARGE",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 2.7,
+          "type": "cleanup"
+        },
+        {
+          "at": 3,
+          "type": "celebration_start"
+        }
+      ]
+    },
+    "aryeh_deri": {
+      "fighter_id": "aryeh_deri",
+      "finisher_id": "campaign_entourage",
+      "display_name": "CAMPAIGN ENTOURAGE",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 4.0,
+      "camera_preset": "wide_stage",
+      "celebration_id": "campaign_entourage_victory",
+      "events": [
+        {
+          "at": 0.0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.3,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/aryeh_deri/atlas/entourage-kit-v2.png",
+          "region": [
+            0,
+            0,
+            590,
+            627
+          ],
+          "figure_height_px": 568,
+          "foot_baseline": 616
+        },
+        {
+          "at": 0.4,
+          "type": "caption",
+          "text": "CAMPAIGN ENTOURAGE",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.55,
+          "type": "spawn_actor",
+          "id": "entourage_pass_one",
+          "asset": "res://assets/finishers/aryeh_deri/atlas/entourage-kit-v2.png",
+          "region": [
+            585,
+            0,
+            669,
+            627
+          ],
+          "pixel_scale": 0.00235,
+          "grounded": true,
+          "foot_baseline": 612,
+          "anchor": "attacker",
+          "position": [
+            -1.8,
+            0.0,
+            0.12
+          ]
+        },
+        {
+          "at": 0.6,
+          "type": "move_actor",
+          "id": "entourage_pass_one",
+          "anchor": "defender",
+          "position": [
+            0.15,
+            0.0,
+            0.12
+          ],
+          "duration": 0.5
+        },
+        {
+          "at": 1.1,
+          "type": "hit",
+          "id": "campaign_entourage_stagger_one",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.1,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.22,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.25,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/aryeh_deri/atlas/entourage-kit-v2.png",
+          "region": [
+            0,
+            0,
+            590,
+            627
+          ],
+          "figure_height_px": 568,
+          "foot_baseline": 616
+        },
+        {
+          "at": 1.35,
+          "type": "spawn_actor",
+          "id": "entourage_pass_two",
+          "asset": "res://assets/finishers/aryeh_deri/atlas/entourage-kit-v2.png",
+          "region": [
+            585,
+            0,
+            669,
+            627
+          ],
+          "pixel_scale": 0.0025,
+          "grounded": true,
+          "foot_baseline": 612,
+          "anchor": "attacker",
+          "position": [
+            -1.85,
+            0.0,
+            0.28
+          ]
+        },
+        {
+          "at": 1.4,
+          "type": "move_actor",
+          "id": "entourage_pass_two",
+          "anchor": "defender",
+          "position": [
+            0.1,
+            0.0,
+            0.28
+          ],
+          "duration": 0.5
+        },
+        {
+          "at": 1.9,
+          "type": "hit",
+          "id": "campaign_entourage_stagger_two",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.9,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.02,
+          "type": "cleanup"
+        },
+        {
+          "at": 2.05,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/aryeh_deri/atlas/entourage-kit-v2.png",
+          "region": [
+            0,
+            0,
+            590,
+            627
+          ],
+          "figure_height_px": 568,
+          "foot_baseline": 616
+        },
+        {
+          "at": 2.15,
+          "type": "spawn_actor",
+          "id": "final_sign_pass",
+          "asset": "res://assets/finishers/aryeh_deri/atlas/entourage-kit-v2.png",
+          "region": [
+            585,
+            0,
+            669,
+            627
+          ],
+          "pixel_scale": 0.00265,
+          "grounded": true,
+          "foot_baseline": 612,
+          "anchor": "attacker",
+          "position": [
+            -1.9,
+            0.0,
+            0.4
+          ]
+        },
+        {
+          "at": 2.2,
+          "type": "move_actor",
+          "id": "final_sign_pass",
+          "anchor": "defender",
+          "position": [
+            0.0,
+            0.0,
+            0.4
+          ],
+          "duration": 0.5
+        },
+        {
+          "at": 2.7,
+          "type": "hit",
+          "id": "campaign_sign_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.7,
+          "type": "camera_impact",
+          "strength": 0.24
+        },
+        {
+          "at": 2.7,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.7,
+          "type": "caption",
+          "text": "THE FINAL SIGN",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 3.05,
+          "type": "cleanup"
+        },
+        {
+          "at": 3.4,
+          "type": "celebration_start"
+        }
+      ]
+    },
+    "joint_list": {
+      "fighter_id": "joint_list",
+      "finisher_id": "two_headed_chaos_squad",
+      "display_name": "TWO-HEADED CHAOS",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 4.0,
+      "camera_preset": "wide_stage",
+      "celebration_id": "two_headed_chaos_squad_victory",
+      "events": [
+        {
+          "at": 0.0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.35,
+          "type": "caption",
+          "text": "CHAOS SQUAD",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.55,
+          "type": "spawn_actor",
+          "id": "chaos_squad_crossing_one",
+          "asset": "res://assets/finishers/joint_list/actors/chaos-squad-crossing.png",
+          "pixel_scale": 0.0019,
+          "grounded": true,
+          "foot_baseline": 966,
+          "anchor": "attacker",
+          "position": [
+            -2.0,
+            0.0,
+            0.15
+          ]
+        },
+        {
+          "at": 0.6,
+          "type": "move_actor",
+          "id": "chaos_squad_crossing_one",
+          "anchor": "defender",
+          "position": [
+            0.15,
+            0.0,
+            0.15
+          ],
+          "duration": 0.5
+        },
+        {
+          "at": 1.1,
+          "type": "hit",
+          "id": "chaos_squad_stagger_one",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.1,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 1.22,
+          "type": "cleanup"
+        },
+        {
+          "at": 1.35,
+          "type": "spawn_actor",
+          "id": "chaos_squad_crossing_two",
+          "asset": "res://assets/finishers/joint_list/actors/chaos-squad-crossing.png",
+          "pixel_scale": 0.00205,
+          "grounded": true,
+          "foot_baseline": 966,
+          "anchor": "attacker",
+          "position": [
+            -2.1,
+            0.0,
+            0.3
+          ]
+        },
+        {
+          "at": 1.4,
+          "type": "move_actor",
+          "id": "chaos_squad_crossing_two",
+          "anchor": "defender",
+          "position": [
+            0.05,
+            0.0,
+            0.3
+          ],
+          "duration": 0.5
+        },
+        {
+          "at": 1.9,
+          "type": "hit",
+          "id": "chaos_squad_stagger_two",
+          "damage": 3,
+          "final": false,
+          "reaction": "hit"
+        },
+        {
+          "at": 1.9,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.02,
+          "type": "cleanup"
+        },
+        {
+          "at": 2.2,
+          "type": "spawn_prop",
+          "id": "chaos_comic_blast",
+          "asset": "res://assets/finishers/joint_list/effects/comic-blast-final.png",
+          "pixel_scale": 0.00165,
+          "anchor": "defender",
+          "position": [
+            0.0,
+            1.0,
+            0.35
+          ]
+        },
+        {
+          "at": 2.2,
+          "type": "hit",
+          "id": "chaos_squad_comic_blast_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.2,
+          "type": "camera_impact",
+          "strength": 0.25
+        },
+        {
+          "at": 2.2,
+          "type": "screen_flash"
+        },
+        {
+          "at": 2.2,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 2.75,
+          "type": "cleanup"
+        },
+        {
+          "at": 3.05,
+          "type": "celebration_start"
+        }
+      ]
+    },
+    "trump": {
+      "fighter_id": "trump",
+      "finisher_id": "b2_flyover",
+      "display_name": "B-2 FLYOVER",
+      "implemented": true,
+      "meter_cost": 100,
+      "trigger_health_ratio": 0.15,
+      "hold_seconds": 0.55,
+      "activation_range": 1.75,
+      "duration": 4.5,
+      "camera_preset": "overhead_pass",
+      "celebration_id": "b2_flyover_victory",
+      "events": [
+        {
+          "at": 0.0,
+          "type": "portrait_lightbox"
+        },
+        {
+          "at": 0.35,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/trump/poses/point-up.png",
+          "figure_height_px": 1257,
+          "foot_baseline": 1472
+        },
+        {
+          "at": 0.55,
+          "type": "camera_preset",
+          "preset": "overhead_pass"
+        },
+        {
+          "at": 0.65,
+          "type": "spawn_actor",
+          "id": "b2_attack_pass",
+          "asset": "res://assets/finishers/trump/props/b2-overhead.png",
+          "pixel_scale": 0.00072,
+          "anchor": "attacker",
+          "position": [
+            -2.7,
+            2.15,
+            -1.25
+          ]
+        },
+        {
+          "at": 0.7,
+          "type": "move_actor",
+          "id": "b2_attack_pass",
+          "anchor": "defender",
+          "position": [
+            2.7,
+            2.15,
+            -1.25
+          ],
+          "duration": 1.55
+        },
+        {
+          "at": 1.65,
+          "type": "caption",
+          "text": "TARGET LOCKED",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 2.5,
+          "type": "spawn_prop",
+          "id": "b2_blast",
+          "asset": "res://assets/finishers/trump/effects/blast.png",
+          "pixel_scale": 0.00135,
+          "anchor": "defender",
+          "position": [
+            0.0,
+            0.75,
+            0.3
+          ]
+        },
+        {
+          "at": 2.5,
+          "type": "hit",
+          "id": "b2_flyover_final",
+          "damage": 999,
+          "final": true,
+          "reaction": "finish_fall"
+        },
+        {
+          "at": 2.5,
+          "type": "camera_impact",
+          "strength": 0.26
+        },
+        {
+          "at": 2.5,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/impact.wav"
+        },
+        {
+          "at": 3.15,
+          "type": "cleanup"
+        },
+        {
+          "at": 3.55,
+          "type": "celebration_start"
+        }
+      ]
+    }
+  },
+  "celebrations": {
+    "exit_success": {
+      "celebration_id": "exit_success",
+      "implemented": true,
+      "duration": 2.0,
+      "camera_preset": "victory_low",
+      "events": [
+        {
+          "at": 0.0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/bennet/celebration/pose-kit.png",
+          "region": [
+            1030,
+            0,
+            744,
+            887
+          ],
+          "figure_height_px": 820,
+          "foot_baseline": 853
+        },
+        {
+          "at": 0.0,
+          "type": "camera_preset",
+          "preset": "victory_low"
+        },
+        {
+          "at": 0.05,
+          "type": "caption",
+          "text": "EXIT SUCCESS",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.05,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 0.15,
+          "type": "spawn_prop",
+          "id": "pixel_confetti",
+          "asset": "res://assets/finishers/bennet/props/laptop-kit.png",
+          "region": [
+            768,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.0032,
+          "anchor": "attacker",
+          "position": [
+            0,
+            1.6,
+            -0.2
+          ]
+        },
+        {
+          "at": 0.4,
+          "type": "move_actor",
+          "id": "pixel_confetti",
+          "position": [
+            0,
+            2.1,
+            -0.2
+          ],
+          "duration": 1.2,
+          "anchor": "attacker"
+        },
+        {
+          "at": 1.8,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "family_business_victory": {
+      "celebration_id": "family_business_victory",
+      "fighter_id": "bibi",
+      "implemented": true,
+      "duration": 2.0,
+      "events": [
+        {
+          "at": 0.0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/bibi/celebration/family-tableau.png",
+          "region": [
+            0,
+            0,
+            1340,
+            753
+          ],
+          "figure_height_px": 688,
+          "foot_baseline": 716
+        },
+        {
+          "at": 0.0,
+          "type": "camera_preset",
+          "preset": "wide_stage"
+        },
+        {
+          "at": 0.05,
+          "type": "caption",
+          "text": "THE ROYAL FAMILY",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.05,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 1.9,
+          "type": "result_marker"
+        }
+      ],
+      "camera_preset": "wide_stage"
+    },
+    "prime_time_rush_victory": {
+      "celebration_id": "prime_time_rush_victory",
+      "fighter_id": "yair_lapid",
+      "implemented": true,
+      "duration": 2,
+      "events": [
+        {
+          "at": 0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_lapid/poses/boxing-kit.png",
+          "region": [
+            1480,
+            0,
+            692,
+            724
+          ],
+          "figure_height_px": 606,
+          "foot_baseline": 709
+        },
+        {
+          "at": 0,
+          "type": "camera_preset",
+          "preset": "victory_low"
+        },
+        {
+          "at": 0.05,
+          "type": "caption",
+          "text": "PRIME TIME",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.05,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 0.2,
+          "type": "screen_flash"
+        },
+        {
+          "at": 0.6,
+          "type": "screen_flash"
+        },
+        {
+          "at": 1,
+          "type": "screen_flash"
+        },
+        {
+          "at": 1.8,
+          "type": "result_marker"
+        }
+      ],
+      "camera_preset": "victory_low"
+    },
+    "independence_flag_victory": {
+      "fighter_id": "benny_gantz",
+      "celebration_id": "independence_flag_victory",
+      "implemented": true,
+      "duration": 2,
+      "camera_preset": "wide_stage",
+      "events": [
+        {
+          "at": 0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/benny_gantz/poses/flag-kit.png",
+          "region": [
+            930,
+            0,
+            600,
+            724
+          ],
+          "figure_height_px": 624,
+          "foot_baseline": 710
+        },
+        {
+          "at": 0,
+          "type": "camera_preset",
+          "preset": "wide_stage"
+        },
+        {
+          "at": 0.05,
+          "type": "caption",
+          "text": "STAND TALL",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.05,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 0.1,
+          "type": "spawn_prop",
+          "id": "independence_confetti",
+          "asset": "res://assets/finishers/benny_gantz/poses/flag-kit.png",
+          "region": [
+            1530,
+            0,
+            642,
+            724
+          ],
+          "pixel_scale": 0.0028,
+          "anchor": "attacker",
+          "position": [
+            0,
+            2.1,
+            -0.2
+          ]
+        },
+        {
+          "at": 0.2,
+          "type": "move_actor",
+          "id": "independence_confetti",
+          "anchor": "attacker",
+          "position": [
+            0,
+            1.1,
+            -0.2
+          ],
+          "duration": 1.5
+        },
+        {
+          "at": 1.9,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "oil_barrel_48_victory": {
+      "celebration_id": "oil_barrel_48_victory",
+      "implemented": true,
+      "duration": 2.0,
+      "camera_preset": "victory_low",
+      "events": [
+        {
+          "at": 0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/avigdor/atlas/oil-barrel-kit.png",
+          "region": [
+            1805,
+            0,
+            367,
+            724
+          ],
+          "figure_height_px": 649,
+          "foot_baseline": 705
+        },
+        {
+          "at": 0,
+          "type": "camera_preset",
+          "preset": "victory_low"
+        },
+        {
+          "at": 0.05,
+          "type": "caption",
+          "text": "48:00",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.05,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 1.8,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "coalition_cashstorm_victory": {
+      "celebration_id": "coalition_cashstorm_victory",
+      "implemented": true,
+      "duration": 2.0,
+      "camera_preset": "victory_low",
+      "events": [
+        {
+          "at": 0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/mansour_abbas/atlas/cashstorm-kit-v2.png",
+          "region": [
+            768,
+            470,
+            768,
+            554
+          ],
+          "figure_height_px": 504,
+          "foot_baseline": 528
+        },
+        {
+          "at": 0,
+          "type": "camera_preset",
+          "preset": "victory_low"
+        },
+        {
+          "at": 0.05,
+          "type": "caption",
+          "text": "COALITION BONUS",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.05,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 0.15,
+          "type": "spawn_prop",
+          "id": "victory_cash",
+          "asset": "res://assets/finishers/mansour_abbas/atlas/cashstorm-kit-v2.png",
+          "region": [
+            0,
+            512,
+            768,
+            512
+          ],
+          "pixel_scale": 0.002,
+          "anchor": "attacker",
+          "position": [
+            0,
+            2.2,
+            -0.2
+          ]
+        },
+        {
+          "at": 0.3,
+          "type": "move_actor",
+          "id": "victory_cash",
+          "anchor": "attacker",
+          "position": [
+            0,
+            1.3,
+            -0.2
+          ],
+          "duration": 1.3
+        },
+        {
+          "at": 1.8,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "bazooka_command_victory": {
+      "fighter_id": "gadi_eisenkot",
+      "celebration_id": "bazooka_command_victory",
+      "implemented": true,
+      "duration": 2,
+      "camera_preset": "victory_low",
+      "events": [
+        {
+          "at": 0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/gadi_eisenkot/poses/bazooka-kit.png",
+          "region": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "figure_height_px": 506,
+          "foot_baseline": 556
+        },
+        {
+          "at": 0,
+          "type": "camera_preset",
+          "preset": "victory_low"
+        },
+        {
+          "at": 0.05,
+          "type": "caption",
+          "text": "MISSION ACCOMPLISHED",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.05,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 1.9,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "m16_burst_victory": {
+      "fighter_id": "yair_golan",
+      "celebration_id": "m16_burst_victory",
+      "implemented": true,
+      "duration": 2,
+      "camera_preset": "wide_stage",
+      "events": [
+        {
+          "at": 0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/yair_golan/poses/m16-kit.png",
+          "region": [
+            850,
+            0,
+            650,
+            724
+          ],
+          "figure_height_px": 687,
+          "foot_baseline": 708
+        },
+        {
+          "at": 0,
+          "type": "camera_preset",
+          "preset": "wide_stage"
+        },
+        {
+          "at": 0.05,
+          "type": "spawn_actor",
+          "id": "kaplan_crowd",
+          "asset": "res://assets/finishers/yair_golan/actors/democracy-crowd.png",
+          "pixel_scale": 0.0025,
+          "grounded": true,
+          "foot_baseline": 935,
+          "anchor": "attacker",
+          "position": [
+            0.25,
+            0,
+            -0.85
+          ],
+          "mirror_facing": false
+        },
+        {
+          "at": 0.1,
+          "type": "caption",
+          "text": "DEMOCRACY",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.1,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 1.9,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "crocodile_release_victory": {
+      "celebration_id": "crocodile_release_victory",
+      "implemented": true,
+      "duration": 2.0,
+      "camera_preset": "wide_stage",
+      "events": [
+        {
+          "at": 0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "figure_height_px": 579,
+          "foot_baseline": 589
+        },
+        {
+          "at": 0,
+          "type": "camera_preset",
+          "preset": "wide_stage"
+        },
+        {
+          "at": 0.05,
+          "type": "caption",
+          "text": "CROCODILE CREW",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.05,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 0.1,
+          "type": "spawn_actor",
+          "id": "crocodile_lineup_1",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0015,
+          "grounded": true,
+          "foot_baseline": 526,
+          "anchor": "attacker",
+          "position": [
+            -1.4,
+            0,
+            -0.15
+          ]
+        },
+        {
+          "at": 0.1,
+          "type": "spawn_actor",
+          "id": "crocodile_lineup_2",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0015,
+          "grounded": true,
+          "foot_baseline": 526,
+          "anchor": "attacker",
+          "position": [
+            0,
+            0,
+            -0.15
+          ]
+        },
+        {
+          "at": 0.1,
+          "type": "spawn_actor",
+          "id": "crocodile_lineup_3",
+          "asset": "res://assets/finishers/itamar_ben_gvir/atlas/crocodile-kit.png",
+          "region": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0015,
+          "grounded": true,
+          "foot_baseline": 526,
+          "anchor": "attacker",
+          "position": [
+            2.5,
+            0,
+            -0.15
+          ]
+        },
+        {
+          "at": 1.8,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "cattle_charge_victory": {
+      "fighter_id": "bezalel_smotrich",
+      "celebration_id": "cattle_charge_victory",
+      "implemented": true,
+      "duration": 2,
+      "camera_preset": "wide_stage",
+      "events": [
+        {
+          "at": 0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/bezalel_smotrich/poses/cattle-kit.png",
+          "region": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "figure_height_px": 487,
+          "foot_baseline": 560
+        },
+        {
+          "at": 0,
+          "type": "camera_preset",
+          "preset": "wide_stage"
+        },
+        {
+          "at": 0.05,
+          "type": "spawn_actor",
+          "id": "ranch_cow_left",
+          "asset": "res://assets/finishers/bezalel_smotrich/poses/cattle-kit.png",
+          "region": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0024,
+          "grounded": true,
+          "foot_baseline": 505,
+          "anchor": "attacker",
+          "position": [
+            -1.3,
+            0,
+            -0.8
+          ],
+          "modulate": [
+            0.08,
+            0.065,
+            0.05,
+            0.72
+          ]
+        },
+        {
+          "at": 0.05,
+          "type": "spawn_actor",
+          "id": "ranch_cow_right",
+          "asset": "res://assets/finishers/bezalel_smotrich/poses/cattle-kit.png",
+          "region": [
+            0,
+            627,
+            627,
+            627
+          ],
+          "pixel_scale": 0.0022,
+          "grounded": true,
+          "foot_baseline": 505,
+          "anchor": "attacker",
+          "position": [
+            1.1,
+            0,
+            -1.1
+          ],
+          "modulate": [
+            0.08,
+            0.065,
+            0.05,
+            0.72
+          ]
+        },
+        {
+          "at": 0.1,
+          "type": "caption",
+          "text": "HERD UNDER CONTROL",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.1,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 1.9,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "campaign_entourage_victory": {
+      "fighter_id": "aryeh_deri",
+      "celebration_id": "campaign_entourage_victory",
+      "implemented": true,
+      "duration": 2.2,
+      "camera_preset": "victory_low",
+      "events": [
+        {
+          "at": 0.0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/aryeh_deri/atlas/entourage-kit-v2.png",
+          "region": [
+            627,
+            627,
+            627,
+            627
+          ],
+          "figure_height_px": 522,
+          "foot_baseline": 547
+        },
+        {
+          "at": 0.0,
+          "type": "camera_preset",
+          "preset": "victory_low"
+        },
+        {
+          "at": 0.1,
+          "type": "caption",
+          "text": "A QUIET PRAYER",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 2.0,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "two_headed_chaos_squad_victory": {
+      "fighter_id": "joint_list",
+      "celebration_id": "two_headed_chaos_squad_victory",
+      "implemented": true,
+      "duration": 2.2,
+      "camera_preset": "victory_low",
+      "events": [
+        {
+          "at": 0.0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/joint_list/celebration/knafeh-sharing.png",
+          "figure_height_px": 1152,
+          "foot_baseline": 1217
+        },
+        {
+          "at": 0.0,
+          "type": "camera_preset",
+          "preset": "victory_low"
+        },
+        {
+          "at": 0.1,
+          "type": "caption",
+          "text": "SHARE THE KNAFEH",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.1,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 2.0,
+          "type": "result_marker"
+        }
+      ]
+    },
+    "b2_flyover_victory": {
+      "fighter_id": "trump",
+      "celebration_id": "b2_flyover_victory",
+      "implemented": true,
+      "duration": 2.4,
+      "camera_preset": "wide_stage",
+      "events": [
+        {
+          "at": 0.0,
+          "type": "fighter_clip",
+          "asset": "res://assets/finishers/trump/celebration/victory-dance.png",
+          "figure_height_px": 1201,
+          "foot_baseline": 1381
+        },
+        {
+          "at": 0.0,
+          "type": "camera_preset",
+          "preset": "wide_stage"
+        },
+        {
+          "at": 0.05,
+          "type": "spawn_actor",
+          "id": "b2_victory_pass",
+          "asset": "res://assets/finishers/trump/props/b2-overhead.png",
+          "pixel_scale": 0.00038,
+          "anchor": "attacker",
+          "position": [
+            -2.9,
+            2.65,
+            -1.6
+          ]
+        },
+        {
+          "at": 0.1,
+          "type": "move_actor",
+          "id": "b2_victory_pass",
+          "anchor": "attacker",
+          "position": [
+            2.9,
+            2.65,
+            -1.6
+          ],
+          "duration": 1.8
+        },
+        {
+          "at": 0.1,
+          "type": "caption",
+          "text": "VICTORY FLYOVER",
+          "ui_position": [
+            390,
+            135
+          ]
+        },
+        {
+          "at": 0.1,
+          "type": "sound",
+          "asset": "res://assets/finishers/shared/audio/success.wav"
+        },
+        {
+          "at": 2.3,
+          "type": "result_marker"
+        }
+      ]
+    }
+  }
+}

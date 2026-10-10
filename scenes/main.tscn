@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://eqd0pe6l48jv"]
+
+[ext_resource type="Script" uid="uid://7miwydugr22f" path="res://scripts/main.gd" id="1_main"]
+
+[node name="WorldFight" type="Node3D" unique_id=9755077]
+visible = true
+script = ExtResource("1_main")

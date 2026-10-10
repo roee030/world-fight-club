@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://israel-election-fight.online/</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <xhtml:link rel="alternate" hreflang="he" href="https://israel-election-fight.online/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://israel-election-fight.online/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://israel-election-fight.online/"/>
+  </url>
+  <url>
+    <loc>https://israel-election-fight.online/about/</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <xhtml:link rel="alternate" hreflang="he" href="https://israel-election-fight.online/about/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://israel-election-fight.online/en/"/>
+  </url>
+  <url><loc>https://israel-election-fight.online/terms/</loc><lastmod>__BUILD_DATE__</lastmod></url>
+  <url><loc>https://israel-election-fight.online/privacy/</loc><lastmod>__BUILD_DATE__</lastmod></url>
+  <url><loc>https://israel-election-fight.online/accessibility/</loc><lastmod>__BUILD_DATE__</lastmod></url>
+  <url><loc>https://israel-election-fight.online/licenses/</loc><lastmod>__BUILD_DATE__</lastmod></url>
+  <url>
+    <loc>https://israel-election-fight.online/en/</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://israel-election-fight.online/en/"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://israel-election-fight.online/about/"/>
+  </url>
+</urlset>

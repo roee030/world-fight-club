@@ -1,0 +1,37 @@
+{
+  "default": "normal",
+  "levels": [
+    {
+      "id": "easy",
+      "label": "EASY",
+      "tagline": "LEARN THE ROPES",
+      "description": "Slow reactions, rare guards, weaker hits.",
+      "quick_level": 0,
+      "campaign_offset": -1
+    },
+    {
+      "id": "normal",
+      "label": "NORMAL",
+      "tagline": "A FAIR FIGHT",
+      "description": "The balanced CPU. Campaign ramps up to a tough boss.",
+      "quick_level": 1,
+      "campaign_offset": 0
+    },
+    {
+      "id": "hard",
+      "label": "HARD",
+      "tagline": "NO FREE HITS",
+      "description": "Faster reactions, punishes misses, breaks combos.",
+      "quick_level": 2,
+      "campaign_offset": 1
+    },
+    {
+      "id": "expert",
+      "label": "EXPERT",
+      "tagline": "BOSS MODE",
+      "description": "Every rival fights like the final boss.",
+      "quick_level": 4,
+      "campaign_offset": 3
+    }
+  ]
+}
