@@ -1,5 +1,7 @@
 # Pro fighting engine: depth, online, 2v2, mobile app
 
+> **SUPERSEDED as the plan on 2026-10-11** by `2026-10-11-pro-3d-fighter-master-plan.md` + `../specs/2026-10-11-3d-fighter-architecture.md` (3D pivot). This file remains the running PROGRESS LOG (table below); append new rows here.
+
 > **HANDOFF - read this first (updated as work lands; newest entry at the bottom of "Progress log").**
 > Location: `D:ight-app` (its own git repo, forked 2026-10-10 from `D:\election world fight`; NEVER push to the old repo; do not push at all unless the owner asks).
 > This file is the MASTER plan. The detailed engine spec is `2026-10-09-fighter-engine-flow-plan.md` (phases 0-7 there = Phases 1-4 here) and combos are `2026-10-09-combo-system-plan.md` (done). The owner's open decisions in the flow plan section 8 were answered by "build the pro engine": **adopt every recommended default** (dash yes, air attacks yes, counter-hit yes, engine before more combos, back-walk 0.8x).
@@ -12,7 +14,8 @@
 
 | Date | Done | Evidence | Next |
 |---|---|---|---|
-| 2026-10-10 | Plan written. `data/fighter_tuning.json` + `scripts/fighter_tuning.gd` (HP, walk speed, damage mults moved out of if-chains, 1:1 values). Movement feel: walk accel 48/decel 70, back-walk 0.8x, committed jump arc (v 6.4, rise g 20, fall g 27, air drift 15%), edge-triggered jump (no bunny-hop), no mid-air facing flip, input buffer no longer ticks during hit-stop. Harness `tests/helpers/fight_sim.gd`. | `tests/test_fighter_tuning.gd`, `tests/test_fighter_feel.gd` pass | Next: Phase 0 golden replays; derived `state` enum (flow plan 3.1); dash; air attacks; frame-data JSON for `MOVES`; blockstun/counter-hit; hit-stop tiers; CPU update + fairness bots. Then deterministic sim core (Phase 1 here). |
+| 2026-10-10 | Plan written. `data/fighter_tuning.json` + `scripts/fighter_tuning.gd` (HP, walk speed, damage mults moved out of if-chains, 1:1 values). Movement feel: walk accel 48/decel 70, back-walk 0.8x, committed jump arc (v 6.4, rise g 20, fall g 27, air drift 15%), edge-triggered jump (no bunny-hop), no mid-air facing flip, input buffer no longer ticks during hit-stop. Harness `tests/helpers/fight_sim.gd`. | `tests/test_fighter_tuning.gd`, `tests/test_fighter_feel.gd` pass | (superseded by 3D plan) Next: Phase 0 golden replays; derived `state` enum (flow plan 3.1); dash; air attacks; frame-data JSON for `MOVES`; blockstun/counter-hit; hit-stop tiers; CPU update + fairness bots. Then deterministic sim core (Phase 1 here). |
+| 2026-10-11 | Owner chose realistic 3D, rigged pivot, free tools, Easy+Pro controls. Master plan + architecture spec written. Owner generated 12 pose images of himself; stored in `private/roee/frames` (git-ignored); local-only private fighter system (`scripts/private_roster.gd`, `tools/build_private_fighter.py`, `private/fighters.json`) lets `roee` play in the legacy game. | `tests/test_private_roster.gd` passes (with and without private fighters) | M0 spikes (sim perf, retarget, sampling, look), then M1 deterministic sim |
 
 
 ## Goal

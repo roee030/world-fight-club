@@ -13,13 +13,13 @@ func _run() -> void:
 	root.add_child(main)
 	await process_frame
 	await process_frame
-	for player_id in main.PLAYABLE_IDS:
+	for player_id in main.playable_ids:
 		var ladder: Array = main.campaign_ladder_for(player_id, 7)
 		assert(ladder[-1] == "bibi", "Bibi must close the ladder for %s" % player_id)
 		var unique := {}
 		for rival in ladder: unique[rival] = true
 		assert(unique.size() == ladder.size(), "duplicate rival in %s ladder" % player_id)
-		var expected: int = main.PLAYABLE_IDS.size() - (1 if player_id != "bibi" else 0)
+		var expected: int = main.playable_ids.size() - (1 if player_id != "bibi" else 0)
 		assert(ladder.size() == expected, "%s ladder must include every other fighter (+ Bibi boss): %d" % [player_id, ladder.size()])
 		if player_id != "bibi":
 			assert(not player_id in ladder, "player fights themselves in the %s ladder" % player_id)

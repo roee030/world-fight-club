@@ -3,7 +3,11 @@
 > **This is a NEW project, forked on 2026-10-10 from the satirical game in `D:\election world fight`. It is a separate git repo and is never pushed to that repo or its `main`. Do not push anywhere without the owner asking.**
 > Vision: a pro 2.5D mobile fighting game (Brawlhalla / Street Fighter / Tekken feel): deep combos, distinct fighters, addictive progression, online (rollback) + offline, optional 2v2, and a **personal fighter built from each player's own selfie** (see `docs/character-art/`). Characters/art are produced outside the engine with AI image tools; the engine must stay data-driven.
 
-Read, in this order: `docs/superpowers/plans/2026-10-10-pro-fighting-engine-online-2v2-app.md` (MASTER plan + progress log + handoff), `docs/superpowers/plans/2026-10-09-fighter-engine-flow-plan.md` (detailed engine spec), `docs/character-art/README.md` (art contract and AI prompts), `docs/character-art/personal-fighter-flow.md` (selfie flow, consent, safety), `docs/character-pipeline.md`, then the rules below. Inherited legacy plans/specs under `docs/superpowers/` describe the old satirical game (finishers, campaign, Web legal); treat them as reference, not as the roadmap.
+Read, in this order: `docs/superpowers/plans/2026-10-11-pro-3d-fighter-master-plan.md` (ACTIVE master plan: research, design target, milestones M0-M10), `docs/superpowers/specs/2026-10-11-3d-fighter-architecture.md` (ACTIVE architecture: deterministic sim, move schema, meters, controls, verification), the progress log in `docs/superpowers/plans/2026-10-10-pro-fighting-engine-online-2v2-app.md` (handoff log; append to it), `docs/character-art/` (AI image prompts, personal-fighter flow, consent), then the rules below. Older plans/specs under `docs/superpowers/` describe the legacy satirical sprite game; reference only.
+
+**2026-10-11 pivot (owner decision):** realistic rigged 3D characters on one humanoid skeleton with a shared animation library, a new deterministic fixed-point sim (`sim/`), Easy + Pro controls, rollback later. The 2D sprite pipeline, `fighter.gd` combat, `data/combos.json` and finishers are LEGACY: keep them working until the new battle scene becomes default (end of M4), but build new work in the new layers. Inherited rules below that mention the sprite pipeline, 12-frame contract, the single combo engine in `fighter.gd` or JAB/CROSS/KICK/SP/GUARD apply only to the legacy game.
+
+**Personal likeness rule:** selfies and any art of real users live only in `private/` (git-ignored). Local test fighters are registered in `private/fighters.json` and built with `python tools/build_private_fighter.py <id>` (see `scripts/private_roster.gd`). Never commit or upload them. The owner's own test fighter is `roee`.
 
 Local tooling: there is no portable Godot in this folder. Use the one in the sibling repo: `"D:/election world fight/tools/godot-portable/Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script res://tests/<name>.gd` (wrap in `timeout 90`). A copy of `.godot/` was brought over; if imports look stale run the same exe with `--headless --path . --import`.
 
@@ -17,7 +21,7 @@ Build a polished satirical 2.5D fighting game in Godot 4. The quality target is 
 
 ## Non-negotiable implementation rules
 
-- Use the existing sprite fighter pipeline. Never replace a fighter with a photo billboard or a generic body with a pasted face.
+- (Legacy game) Use the existing sprite fighter pipeline. In all work: never use a photo billboard or a generic body with a pasted face; identity comes from a complete per-character model.
 - Keep the 1280×720 reference layout usable with Godot canvas scaling.
 - All fighters use the same 12-frame source contract and `FighterVisual` geometry system.
 - Character height, pixel scale and floor correction are separate values. Adjust the correct value instead of compensating with arbitrary transforms.

@@ -2,6 +2,7 @@ extends RefCounted
 class_name FighterVisual
 
 const SpriteMotion = preload("res://scripts/sprite_motion.gd")
+const PrivateRoster = preload("res://scripts/private_roster.gd")
 const TWELVE_FRAME_IDS := ["bennet", "avigdor", "bibi", "yair_golan", "aryeh_deri", "yair_lapid", "mansour_abbas", "benny_gantz", "itamar_ben_gvir", "bezalel_smotrich", "gadi_eisenkot", "trump", "joint_list"]
 
 # Artwork scale, physical height and floor correction stay separate so replacing
@@ -80,10 +81,12 @@ static func build(character_id: String) -> Dictionary:
 
 static func geometry_for(character_id: String) -> Dictionary:
 	var geometry: Dictionary = FIGHTER_GEOMETRY.get(character_id, DEFAULT_GEOMETRY).duplicate(true)
+	if PrivateRoster.has(character_id):
+		geometry["height_m"] = float(PrivateRoster.info(character_id).get("height_m", DEFAULT_GEOMETRY.height_m))
 	var frame_height := NORMALIZED_FRAME_SIZE
 	var foot_baseline := NORMALIZED_FOOT_BASELINE
 	var figure_height := NORMALIZED_FIGURE_HEIGHT
-	var texture_path := "res://assets/characters/sprites/%s-0.png" % character_id
+	var texture_path := sprite_path(character_id, 0)
 	var texture := load(texture_path) as Texture2D if ResourceLoader.exists(texture_path) else null
 	if texture != null:
 		var image := texture.get_image()
@@ -100,6 +103,12 @@ static func geometry_for(character_id: String) -> Dictionary:
 	return geometry
 
 
+static func sprite_path(character_id: String, frame: int) -> String:
+	if PrivateRoster.has(character_id):
+		return PrivateRoster.sprite_path(character_id, frame)
+	return "res://assets/characters/sprites/%s-%d.png" % [character_id, frame]
+
+
 static func ground_y_from_geometry(geometry: Dictionary) -> float:
 	return (float(geometry.foot_baseline_px) - float(geometry.frame_height_px) * 0.5) * float(geometry.pixel_size) + float(geometry.ground_offset_m)
 
@@ -112,12 +121,12 @@ static func _make_frames(character_id: String) -> SpriteFrames:
 		frames.set_animation_loop(clip_name, clip_name in ["idle", "walk_forward", "walk_back", "jump_air"])
 		frames.set_animation_speed(clip_name, _fps_for(clip_name))
 		for frame_index in clips[clip_name]:
-			var texture := load("res://assets/characters/sprites/%s-%d.png" % [character_id, frame_index]) as Texture2D
+			var texture := load(sprite_path(character_id, frame_index)) as Texture2D
 			if texture != null: frames.add_frame(clip_name, texture)
 	return frames
 
 static func _clip_map(character_id: String) -> Dictionary:
-	if character_id in TWELVE_FRAME_IDS:
+	if character_id in TWELVE_FRAME_IDS or PrivateRoster.has(character_id):
 		return {"idle": [0, 0], "walk_forward": [1, 2], "walk_back": [2, 1], "crouch": [3], "jab": [0, 4, 4, 0], "cross": [0, 5, 5, 0], "hook": [0, 5, 5, 0], "kick": [0, 6, 6, 0], "block": [7], "hit": [8], "knockdown": [8, 9, 10], "getup": [10, 11, 0], "jump_start": [3, 0], "jump_air": [6], "jump_land": [3, 0]}
 	if character_id in ["bibi", "yair_golan"]:
 		return {"idle": [0, 0], "walk_forward": [1, 0], "walk_back": [0, 1], "crouch": [2], "jab": [0, 3, 3, 0], "cross": [0, 3, 4, 0], "hook": [0, 4, 4, 0], "kick": [0, 5, 5, 0], "block": [2], "hit": [0], "knockdown": [0, 5, 2], "getup": [2, 0], "jump_start": [2, 0], "jump_air": [5], "jump_land": [2, 0]}

@@ -190,6 +190,9 @@ var _tutorial_restart_pending := false
 var current_level := 1
 
 const CAMPAIGN_BOSS := "bibi"
+const PrivateRoster = preload("res://scripts/private_roster.gd")
+## PLAYABLE_IDS plus local-only private fighters (scripts/private_roster.gd).
+var playable_ids: Array = []
 const FIGHTER_DATA := {
 	"bennet": {"name": "BENNET", "callout": "THE FOUNDER  /  COMBO STRIKER", "style": "Close-range pressure", "signature": "Founder’s Rush"},
 	"avigdor": {"name": "AVIGDOR LIEBERMAN", "callout": "THE FIXER  /  COUNTER HEAVY", "style": "Patient guard", "signature": "Iron Verdict"},
@@ -217,6 +220,8 @@ const STAGES := [
 
 
 func _ready() -> void:
+	playable_ids = PLAYABLE_IDS.duplicate()
+	playable_ids.append_array(PrivateRoster.ids())
 	# Every screen is authored left-to-right. Godot otherwise mirrors the whole
 	# UI on Hebrew/Arabic phones and browsers, pushing menus off-screen.
 	get_tree().root.set_layout_direction(Window.LAYOUT_DIRECTION_LTR)
@@ -310,9 +315,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			map_select_root.visible = false
 			select_root.visible = true
 		elif event.keycode in [KEY_LEFT, KEY_A] and select_root.visible:
-			_select_fighter(PLAYABLE_IDS[wrapi(PLAYABLE_IDS.find(selecting) - 1, 0, PLAYABLE_IDS.size())])
+			_select_fighter(playable_ids[wrapi(playable_ids.find(selecting) - 1, 0, playable_ids.size())])
 		elif event.keycode in [KEY_RIGHT, KEY_D] and select_root.visible:
-			_select_fighter(PLAYABLE_IDS[wrapi(PLAYABLE_IDS.find(selecting) + 1, 0, PLAYABLE_IDS.size())])
+			_select_fighter(playable_ids[wrapi(playable_ids.find(selecting) + 1, 0, playable_ids.size())])
 		elif event.keycode in [KEY_ENTER, KEY_SPACE] and menu_root.visible:
 			_open_select("quick")
 		elif event.keycode in [KEY_ENTER, KEY_SPACE] and map_select_root.visible:
@@ -407,10 +412,17 @@ func _consume(action: String, key: Key, alt_key: Key) -> bool:
 	return pressed
 
 
+## Private fighters borrow a roster finisher (private/fighters.json "finisher_from").
+func _finisher_owner(id: String) -> String:
+	if PrivateRoster.has(id):
+		return str(PrivateRoster.info(id).get("finisher_from", "bennet"))
+	return id
+
+
 func _current_finisher_definition() -> Dictionary:
 	if _finisher_catalog == null or not is_instance_valid(player):
 		return {}
-	return _finisher_catalog.definition_for(player.character_id)
+	return _finisher_catalog.definition_for(_finisher_owner(player.character_id))
 
 
 func _on_touch_action_down(action: String) -> void:
@@ -1613,8 +1625,8 @@ func _build_select() -> void:
 	roster_grid.add_theme_constant_override("h_separation", 8)
 	roster_grid.add_theme_constant_override("v_separation", 8)
 	design.add_child(roster_grid)
-	for i in range(PLAYABLE_IDS.size()):
-		var fighter_id: String = PLAYABLE_IDS[i]
+	for i in range(playable_ids.size()):
+		var fighter_id: String = playable_ids[i]
 		var tile := _button(roster_grid, "", Rect2(0, 0, 87, 80), "#13212c", 18)
 		tile.custom_minimum_size = Vector2(87, 80)
 		tile.name = "RosterTile_" + fighter_id
@@ -1707,7 +1719,7 @@ func _open_select(mode: String) -> void:
 
 
 func _select_fighter(id: String) -> void:
-	if not FIGHTER_DATA.has(id) or rival_reveal_active: return
+	if not (FIGHTER_DATA.has(id) or PrivateRoster.has(id)) or rival_reveal_active: return
 	selecting = id
 	select_portrait.texture = _fighter_art(id)
 	_select_fighter_text(id)
@@ -1739,7 +1751,7 @@ func rival_reveal_sequence(rival_id: String, player_id: String, steps: int, rng:
 	# Faces flicked through the CPU frame: never the player, never the same face
 	# twice in a row, always ending on the chosen rival.
 	var pool: Array[String] = []
-	for id in PLAYABLE_IDS:
+	for id in playable_ids:
 		if id != player_id: pool.append(id)
 	var random_source := rng if rng != null else RandomNumberGenerator.new()
 	if rng == null: random_source.randomize()
@@ -1758,7 +1770,7 @@ func _start_rival_reveal() -> void:
 	# CONFIRM FIGHT in Quick Fight: shuffle the roster faces through the CPU
 	# frame, slow down and land on the random rival, then open the arena select.
 	_cancel_rival_reveal()
-	pending_rival_id = _opponent_selector.pick_opponent(PLAYABLE_IDS, selecting)
+	pending_rival_id = _opponent_selector.pick_opponent(playable_ids, selecting)
 	if pending_rival_id.is_empty(): return
 	for node_name in ["MysteryCpuMark", "MysteryCpuFrame"]:
 		(select_root.find_child(node_name, true, false) as CanvasItem).visible = false
@@ -1793,7 +1805,7 @@ func _show_rival_reveal_face(id: String) -> void:
 
 
 func _finish_rival_reveal() -> void:
-	var data: Dictionary = FIGHTER_DATA.get(pending_rival_id, FIGHTER_DATA.bennet)
+	var data: Dictionary = _fighter_data(pending_rival_id)
 	select_rival_portrait.texture = _fighter_art(pending_rival_id)
 	select_rival_name.text = str(data.name).to_upper()
 	select_rival_style.text = "YOUR OPPONENT  •  " + str(data.style).to_upper()
@@ -1805,7 +1817,7 @@ func _finish_rival_reveal() -> void:
 
 
 func _select_fighter_text(id: String) -> void:
-	var data: Dictionary = FIGHTER_DATA.get(id, FIGHTER_DATA.bennet)
+	var data: Dictionary = _fighter_data(id)
 	select_name_label.text = str(data.name)
 	select_name_label.add_theme_font_size_override("font_size", 38 if str(data.name).length() > 13 else 46)
 	select_style_label.text = (str(data.callout).replace("  /  ", "  •  ") + "  •  " + str(data.style)).to_upper()
@@ -1813,11 +1825,11 @@ func _select_fighter_text(id: String) -> void:
 
 
 func _refresh_roster() -> void:
-	for i in range(mini(PLAYABLE_IDS.size(), roster_tiles.size())):
+	for i in range(mini(playable_ids.size(), roster_tiles.size())):
 		var style := StyleBoxFlat.new()
 		style.bg_color = Color("#14242e")
-		var is_selected: bool = PLAYABLE_IDS[i] == selecting
-		var is_rival: bool = PLAYABLE_IDS[i] == _rival_reveal_highlight
+		var is_selected: bool = playable_ids[i] == selecting
+		var is_rival: bool = playable_ids[i] == _rival_reveal_highlight
 		style.border_color = ACCENT_CYAN.lightened(0.2) if is_selected else (ACCENT_GOLD.lightened(0.1) if is_rival else Color("#3a5363"))
 		style.set_border_width_all(3 if is_selected or is_rival else 1)
 		style.set_corner_radius_all(3)
@@ -1903,11 +1915,19 @@ func _stage_data(id: String) -> Dictionary:
 	return STAGES[0]
 
 
+func _fighter_data(id: String) -> Dictionary:
+	if PrivateRoster.has(id):
+		return PrivateRoster.info(id)
+	return FIGHTER_DATA.get(id, FIGHTER_DATA.bennet)
+
+
 func _fighter_hero_path(id: String) -> String:
+	if PrivateRoster.has(id): return "res://private/%s/card.png" % id
 	return "res://assets/characters/%s-card.png" % id.replace("_", "-")
 
 
 func _fighter_thumbnail_path(id: String) -> String:
+	if PrivateRoster.has(id): return "res://private/%s/portrait.png" % id
 	return "res://assets/characters/portraits/%s.png" % id
 
 
@@ -1924,12 +1944,12 @@ func _fighter_art(id: String, face_center: bool = false) -> Texture2D:
 
 
 func _next_rival_id(id: String) -> String:
-	var index := PLAYABLE_IDS.find(id)
-	return PLAYABLE_IDS[(index + 1) % PLAYABLE_IDS.size()]
+	var index := playable_ids.find(id)
+	return playable_ids[(index + 1) % playable_ids.size()]
 
 
 func _fighter_name(id: String) -> String:
-	return str(FIGHTER_DATA.get(id, FIGHTER_DATA.bennet).name)
+	return str(_fighter_data(id).name)
 
 
 func _build_pause() -> void:
@@ -2794,7 +2814,7 @@ func _start_quick_fight() -> void:
 	var rival_id := pending_rival_id
 	pending_rival_id = ""
 	if rival_id.is_empty() or rival_id == selecting:
-		rival_id = _opponent_selector.pick_opponent(PLAYABLE_IDS, selecting)
+		rival_id = _opponent_selector.pick_opponent(playable_ids, selecting)
 	if rival_id.is_empty(): return
 	_setup_bout(selecting, rival_id, quick_fight_level(), "SINGLE FIGHT")
 
@@ -2816,7 +2836,7 @@ func campaign_ladder_for(player_id: String, rng_seed: int = -1) -> Array[String]
 	if rng_seed >= 0: rng.seed = rng_seed
 	else: rng.randomize()
 	var rivals: Array[String] = []
-	for id in PLAYABLE_IDS:
+	for id in playable_ids:
 		if id != player_id and id != CAMPAIGN_BOSS:
 			rivals.append(id)
 	for i in range(rivals.size() - 1, 0, -1):
@@ -3252,7 +3272,7 @@ func _show_result_with_celebration(won: bool) -> void:
 	if not is_instance_valid(winner) or not is_instance_valid(loser) or _finisher_catalog == null:
 		_show_result(won)
 		return
-	var definition: Dictionary = _finisher_catalog.definition_for(winner.character_id)
+	var definition: Dictionary = _finisher_catalog.definition_for(_finisher_owner(winner.character_id))
 	var celebration_id := str(definition.get("celebration_id", ""))
 	_celebration_won = won
 	result_root.visible = false
