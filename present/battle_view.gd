@@ -12,6 +12,7 @@ const Moveset = preload("res://sim/moveset.gd")
 const CharacterView = preload("res://present/character_view.gd")
 const CpuPilot = preload("res://ai/cpu_pilot.gd")
 const SpriteView = preload("res://present/sprite_view.gd")
+const Fx = preload("res://present/fx.gd")
 const PrivateRoster = preload("res://scripts/private_roster.gd")
 const AudioManagerScript = preload("res://scripts/audio/audio_manager.gd")
 const VirtualStickScript = preload("res://scripts/virtual_stick.gd")
@@ -61,6 +62,8 @@ var _drive_bars: Array[ProgressBar] = []
 var _burnout_labels: Array[Label] = []
 var _callout: Label
 var _callout_time := 0
+var _zoom_punch := 0.0
+var _slowmo := 0.0
 var _touch_buttons: Dictionary = {}   # input bit -> button
 
 
@@ -187,6 +190,10 @@ func _physics_process(_delta: float) -> void:
 
 
 func _process(delta: float) -> void:
+	if _slowmo > 0.0:
+		# KO slow motion (presentation only: it slows the local 60 Hz stepping).
+		_slowmo = maxf(0.0, _slowmo - delta / maxf(0.05, Engine.time_scale))
+		Engine.time_scale = 0.3 if _slowmo > 0.0 else 1.0
 	for i in range(views.size()):
 		views[i].show_state(state, i, moveset)
 	_update_camera(delta)
@@ -221,6 +228,7 @@ func _read_keyboard() -> int:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		Engine.time_scale = 1.0
 		get_tree().change_scene_to_file("res://scenes/main.tscn")
 	if event is InputEventKey and event.pressed and event.keycode == KEY_TAB:
 		easy_controls = not easy_controls
@@ -245,6 +253,9 @@ func _handle_events(events: PackedInt32Array) -> void:
 				var m: Dictionary = moveset.moves[events[e + 2]]
 				var heavy := int(m.damage) >= 600
 				_shake = maxf(_shake, 0.16 if heavy else 0.07)
+				if heavy: _zoom_punch = maxf(_zoom_punch, 0.35)
+				var victim := state[L.base(who) + L.F_TARGET]
+				if views[victim].has_method("flash"): views[victim].flash()
 				_spark(who, m, Color(1.0, 0.85, 0.35) if heavy else Color(1.0, 0.97, 0.8), 0.55 if heavy else 0.35)
 				var anim := str(m.anim)
 				audio.play_sfx(&"kick_hit" if anim == "kick" else (&"cross_hit" if heavy else &"jab_hit"))
@@ -258,6 +269,8 @@ func _handle_events(events: PackedInt32Array) -> void:
 				_shake = maxf(_shake, 0.12)
 			L.EV_KO:
 				_shake = 0.35
+				_slowmo = 1.1
+				_zoom_punch = 0.6
 				audio.play_sfx(&"finisher")
 			L.EV_LAND:
 				if events[e + 2] == 1: _shake = maxf(_shake, 0.1)
@@ -300,22 +313,7 @@ func _spark(attacker: int, m: Dictionary, color: Color, size: float) -> void:
 	var hb: PackedInt32Array = m.hitbox
 	var x := (state[b + L.F_X] + facing * (hb[0] + hb[2] * 3 / 4)) / 10000.0
 	var y := (state[b + L.F_Y] + hb[1] + hb[3] / 2) / 10000.0
-	var spark := MeshInstance3D.new()
-	var mesh := SphereMesh.new()
-	mesh.radius = size * 0.5
-	mesh.height = size
-	spark.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = color
-	mat.emission_enabled = true
-	mat.emission = color
-	mat.emission_energy_multiplier = 3.0
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	spark.material_override = mat
-	spark.position = Vector3(x, y, 0.25)
-	add_child(spark)
-	_sparks.append({"node": spark, "life": 0.16, "max": 0.16})
+	Fx.burst(self, Vector3(x, y, 0.3), color, size * 1.6)
 
 
 func _spark_at(fighter: int, color: Color, size: float) -> void:
@@ -328,29 +326,12 @@ func _update_projectiles() -> void:
 		var p := L.projectile_base(state, slot)
 		var active := state[p + L.P_ACTIVE] != 0
 		if active and not _projectiles.has(slot):
-			var node := MeshInstance3D.new()
-			var mesh := SphereMesh.new()
-			mesh.radius = 0.22
-			mesh.height = 0.44
-			node.mesh = mesh
-			var mat := StandardMaterial3D.new()
-			mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			var owner := state[p + L.P_OWNER]
-			var color := Color(0.35, 0.85, 1.0) if owner == 0 else Color(1.0, 0.45, 0.35)
-			mat.albedo_color = color
-			mat.emission_enabled = true
-			mat.emission = color
-			mat.emission_energy_multiplier = 4.0
-			node.material_override = mat
-			var light := OmniLight3D.new()
-			light.light_color = color
-			light.light_energy = 2.0
-			light.omni_range = 2.5
-			node.add_child(light)
+			var node := Fx.projectile(Color(0.35, 0.85, 1.0) if owner == 0 else Color(1.0, 0.45, 0.3))
 			add_child(node)
 			_projectiles[slot] = node
 		if _projectiles.has(slot):
-			var node: MeshInstance3D = _projectiles[slot]
+			var node: Node3D = _projectiles[slot]
 			if not active:
 				node.queue_free()
 				_projectiles.erase(slot)
@@ -358,7 +339,10 @@ func _update_projectiles() -> void:
 				var m: Dictionary = moveset.moves[state[p + L.P_MOVE]]
 				var box: PackedInt32Array = m.proj_box
 				node.position = Vector3(state[p + L.P_X] / 10000.0, (state[p + L.P_Y] + box[1] + box[3] / 2) / 10000.0, 0.15)
-				node.rotate_y(0.4)
+				var shell := node.get_node("Shell") as Node3D
+				shell.scale = Vector3.ONE * (1.0 + 0.15 * sin(Time.get_ticks_msec() * 0.03))
+				# The tail trails behind the direction of travel.
+				(node.get_node("Tail") as Node3D).position.x = -signf(float(state[p + L.P_VX])) * 0.3
 
 
 func _update_sparks(delta: float) -> void:
@@ -380,6 +364,8 @@ func _update_camera(delta: float) -> void:
 	var mid := (x0 + x1) * 0.5
 	var spread := absf(x1 - x0)
 	var distance := clampf(4.6 + spread * 0.55, 5.2, 9.0)
+	_zoom_punch = maxf(0.0, _zoom_punch - delta * 2.5)
+	distance -= _zoom_punch * 1.2
 	var target := Vector3(mid, 1.15 + distance * 0.06, distance)
 	var look := Vector3(mid, 1.0, 0)
 	if _cinematic > 0:

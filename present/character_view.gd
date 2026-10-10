@@ -9,6 +9,7 @@ extends Node3D
 ## Spec: docs/superpowers/specs/2026-10-11-3d-fighter-architecture.md
 
 const AnimLib = preload("res://present/anim_library.gd")
+const Fx = preload("res://present/fx.gd")
 const L = preload("res://sim/layout.gd")
 
 const DEFAULT_MODEL := "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf"
@@ -26,6 +27,8 @@ var _clip := ""
 var _loop_speed := 1.0
 var _guard := 0.0
 var _shake_phase := 0
+var _flash_mat: StandardMaterial3D
+var _flash := 0.0
 var _scale := 1.0   # model head height / reference male head height, for IK targets
 
 
@@ -50,6 +53,9 @@ func setup(path: String = DEFAULT_MODEL, tint: Color = Color.WHITE) -> void:
 	var head := skeleton.find_bone("Head")
 	if head >= 0:
 		_scale = clampf(skeleton.get_bone_global_rest(head).origin.y / 1.6, 0.8, 1.25)
+	_flash_mat = Fx.flash_material()
+	for mesh in model.find_children("*", "MeshInstance3D", true, false):
+		(mesh as MeshInstance3D).material_overlay = _flash_mat
 	_leg_ik = _make_ik("thigh_r", "calf_r", "foot_r", "leg", Vector3(-0.15, 0.6, 1.6))
 	_arm_l_ik = _make_ik("upperarm_l", "lowerarm_l", "hand_l", "hand_l", Vector3(0.6, 0.9, -0.4))
 	_arm_r_ik = _make_ik("upperarm_r", "lowerarm_r", "hand_r", "hand_r", Vector3(-0.6, 0.9, -0.4))
@@ -90,6 +96,15 @@ func _sample(clip: String, t: float) -> void:
 		player.play(clip, 0.05)
 	player.speed_scale = 0.0
 	player.seek(t, true)
+
+
+## White hit flash on the whole body (decays over a few frames).
+func flash() -> void:
+	_flash = 1.0
+
+
+func _process(delta: float) -> void:
+	_flash = maxf(0.0, _flash - delta * 9.0)
 
 
 ## Pose the model from fighter `i` of sim state `s`.
@@ -223,6 +238,13 @@ func show_state(s: PackedInt32Array, i: int, moveset) -> void:
 	_leg_ik.influence = leg
 	_arm_l_ik.influence = arm_l
 	_arm_r_ik.influence = arm_r
+	if _flash > 0.0:
+		_flash_mat.albedo_color = Color(1, 1, 1, _flash * 0.75)
+	elif s[b + L.F_SUPER_FREEZE] > 0 and state == L.S_ATTACK:
+		# Super Art aura while the world is frozen.
+		_flash_mat.albedo_color = Color(1.0, 0.85, 0.3, 0.35 + 0.2 * sin(Time.get_ticks_msec() * 0.03))
+	else:
+		_flash_mat.albedo_color = Color(1, 1, 1, 0)
 	# Hit-stop shake on the defender sells the impact.
 	if s[b + L.F_HITSTOP] > 0 and state in [L.S_HITSTUN, L.S_BLOCKSTUN, L.S_LAUNCHED]:
 		_shake_phase += 1
