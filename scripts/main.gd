@@ -501,7 +501,7 @@ func _build_creator_card(parent: Control) -> void:
 	var url := str(site_config().get("linkedin_url", ""))
 	var card := Button.new()
 	card.name = "CreatorCard"
-	card.position = Vector2(58, 444)
+	card.position = Vector2(58, 528)
 	card.size = Vector2(372, 132)
 	card.pivot_offset = card.size * 0.5
 	card.focus_mode = Control.FOCUS_NONE
@@ -1500,23 +1500,23 @@ func _build_menu() -> void:
 	_panel(action_panel, Rect2(0, 69, 92, 3), ACCENT_GOLD)
 	var caption := _label(action_panel, "MAIN MENU", Rect2(0, 86, 330, 30), 15, ACCENT_GOLD, HORIZONTAL_ALIGNMENT_LEFT)
 	caption.add_theme_font_override("font", _bold_font())
-	var quick := _menu_text_button(action_panel, "START FIGHT", Rect2(0, 152, 330, 52), 21)
+	var quick := _menu_text_button(action_panel, "START FIGHT", Rect2(0, 140, 330, 46), 21)
 	quick.name = "SingleFightButton"
 	quick.pressed.connect(func(): _track("menu_start_fight"); _open_select("quick"))
-	var campaign := _menu_text_button(action_panel, "CAMPAIGN", Rect2(0, 214, 330, 52), 18)
+	var campaign := _menu_text_button(action_panel, "CAMPAIGN", Rect2(0, 192, 330, 46), 18)
 	campaign.name = "CampaignButton"
 	campaign.pressed.connect(func(): _track("menu_campaign"); _open_select("campaign"))
-	var settings := _menu_text_button(action_panel, "SETTINGS", Rect2(0, 276, 330, 52), 18)
+	var settings := _menu_text_button(action_panel, "SETTINGS", Rect2(0, 244, 330, 46), 18)
 	settings.name = "SettingsButton"
 	settings.pressed.connect(_show_settings.bind(&"menu"))
 	# The new deterministic 3D engine (docs/superpowers/plans/2026-10-11-pro-3d-fighter-master-plan.md).
-	var engine_beta := _menu_text_button(action_panel, "3D ENGINE  ·  BETA", Rect2(0, 338, 330, 52), 18)
+	var engine_beta := _menu_text_button(action_panel, "3D ENGINE  ·  BETA", Rect2(0, 296, 330, 46), 18)
 	engine_beta.name = "EngineBetaButton"
 	engine_beta.pressed.connect(func(): _track("menu_engine_beta"); get_tree().change_scene_to_file("res://scenes/battle/select.tscn"))
-	var training_beta := _menu_text_button(action_panel, "TRAINING  ·  BETA", Rect2(0, 462, 330, 52), 18)
+	var training_beta := _menu_text_button(action_panel, "TRAINING  ·  BETA", Rect2(0, 348, 330, 46), 18)
 	training_beta.name = "TrainingBetaButton"
 	training_beta.pressed.connect(func(): _track("menu_training_beta"); load("res://present/battle_view.gd").start_training = true; get_tree().change_scene_to_file("res://scenes/battle/battle.tscn"))
-	var online_beta := _menu_text_button(action_panel, "ONLINE  ·  BETA", Rect2(0, 400, 330, 52), 18)
+	var online_beta := _menu_text_button(action_panel, "ONLINE  ·  BETA", Rect2(0, 400, 330, 46), 18)
 	online_beta.name = "OnlineBetaButton"
 	online_beta.pressed.connect(func(): _track("menu_online_beta"); get_tree().change_scene_to_file("res://scenes/online/lobby.tscn"))
 	# Fighter Lab stays available to developers (scenes/character_debug.tscn)
