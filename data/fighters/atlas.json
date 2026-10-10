@@ -4,6 +4,7 @@
   "order": "1",
   "name": "ATLAS",
   "archetype": "all-rounder",
+  "moveset": "universal",
   "model": "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf",
   "tint": [0.85, 0.92, 1.1],
   "stats": {"hp": 10000, "walk": 541}

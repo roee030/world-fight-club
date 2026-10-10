@@ -87,7 +87,7 @@ var _touch_buttons: Dictionary = {}   # input bit -> button
 
 
 func _ready() -> void:
-	moveset = Moveset.compile(["res://data/movesets/universal.json"])
+	moveset = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json"])
 	selection = pending_selection
 	pending_selection = {}
 	_direct_launch = selection.is_empty()
@@ -121,8 +121,8 @@ func _new_match() -> void:
 	var stats0: Dictionary = selection.get("p1", {}).get("stats", {})
 	var stats1: Dictionary = selection.get("p2", {}).get("stats", {})
 	state = Sim.new_match(moveset, [
-		{"x": -16000, "hp": int(stats0.get("hp", 10000)), "walk": int(stats0.get("walk", 541)), "easy": easy_controls or not online.is_empty()},
-		{"x": 16000, "hp": int(stats1.get("hp", 10000)), "walk": int(stats1.get("walk", 541)), "easy": true}], seed_value, {"intro": true, "rounds_to_win": 2})
+		{"x": -16000, "hp": int(stats0.get("hp", 10000)), "walk": int(stats0.get("walk", 541)), "easy": easy_controls or not online.is_empty(), "archetype": str(selection.get("p1", {}).get("moveset", "universal"))},
+		{"x": 16000, "hp": int(stats1.get("hp", 10000)), "walk": int(stats1.get("walk", 541)), "easy": true, "archetype": str(selection.get("p2", {}).get("moveset", "universal"))}], seed_value, {"intro": true, "rounds_to_win": 2})
 	cpu = CpuPilot.new(2, seed_value)
 	_match_over_frames = 0
 	_prev_winner = -1

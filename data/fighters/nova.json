@@ -3,6 +3,7 @@
   "order": "2",
   "name": "NOVA",
   "archetype": "rushdown",
+  "moveset": "rushdown",
   "model": "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Female_FullBody.gltf",
   "tint": [1.1, 0.88, 0.85],
   "stats": {"hp": 9400, "walk": 590}

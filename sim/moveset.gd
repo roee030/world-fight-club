@@ -16,6 +16,14 @@ var by_button: Dictionary = {}      # "stand:LP" -> move index
 var specials: Array[int] = []       # special/super moves, in command priority order
 var named: Dictionary = {}          # "IMPACT", "THROW" -> move index
 var auto_next: Dictionary = {}      # Easy auto-combo: move index -> next move index
+# Archetypes: each fighter has one; an archetype inherits "universal" and overrides moves.
+var archetypes: Array[String] = []
+var _names: Array = []              # per archetype: move name -> global move index
+var _by_button: Array = []          # per archetype: "stand:LP" -> move index
+var _specials: Array = []           # per archetype: Array[int] in command priority
+var _named: Array = []              # per archetype: "IMPACT"/"THROW" -> move index
+var _auto: Array = []               # per archetype: move index -> next auto-combo move
+var _cancels: Array = []            # per archetype: move index -> Array[int] cancel targets
 
 const TYPES := {"normal": 0, "special": 1, "super": 2, "drive": 3, "throw": 4}
 const T_NORMAL := 0
@@ -34,35 +42,95 @@ static func load_json(path: String) -> Dictionary:
 static func compile(moveset_paths: Array) -> RefCounted:
 	var set = load("res://sim/moveset.gd").new()
 	set.rules = _int_tree(load_json(RULES_PATH))
+	var datas: Array = []
 	for path in moveset_paths:
-		var data := load_json(path)
+		datas.append(load_json(path))
+	# "universal" first, then archetypes that inherit it.
+	datas.sort_custom(func(a, b): return str(a.get("moveset", "")) == "universal" and str(b.get("moveset", "")) != "universal")
+	for data in datas:
+		var arch_name := str(data.get("moveset", "universal"))
+		var parent: int = set.archetypes.find(str(data.get("inherits", ""))) if data.has("inherits") else -1
+		set.archetypes.append(arch_name)
+		var names: Dictionary = (set._names[parent] as Dictionary).duplicate() if parent >= 0 else {}
+		var by_button: Dictionary = (set._by_button[parent] as Dictionary).duplicate() if parent >= 0 else {}
+		var named: Dictionary = (set._named[parent] as Dictionary).duplicate() if parent >= 0 else {}
 		for name in data.get("moves", {}):
-			set._add(str(name), data.moves[name])
-	# Resolve cancel targets to move indices once.
-	for move in set.moves:
-		var targets: Array[int] = []
-		for target in move.cancel_into_names:
-			if CANCEL_TOKENS.has(target): targets.append(int(CANCEL_TOKENS[target]))
-			elif set.index.has(target): targets.append(int(set.index[target]))
-		move["cancel_into"] = targets
-	for path in moveset_paths:
-		var routes: Dictionary = load_json(path).get("auto_combo", {})
+			var global_name := str(name) if parent < 0 else "%s:%s" % [arch_name, name]
+			var idx: int = set._add(global_name, data.moves[name])
+			names[str(name)] = idx
+			var move: Dictionary = set.moves[idx]
+			if int(move.type) == T_NORMAL:
+				by_button["%s:%s" % [POSTURES[move.posture], str(data.moves[name].get("button", ""))]] = idx
+			else:
+				named[str(name)] = idx
+		set._names.append(names)
+		set._by_button.append(by_button)
+		set._named.append(named)
+		# Command priority: supers, then longer / more specific motions first.
+		var specials: Array[int] = []
+		for command in ["236236", "623", "214", "236"]:
+			for move_name in names:
+				var mi: int = names[move_name]
+				if str(set.moves[mi].command) == command and not mi in specials:
+					specials.append(mi)
+		set._specials.append(specials)
+		# Cancel targets resolved by this archetype's names (overrides win).
+		var cancels := {}
+		for move_name in names:
+			var mi: int = names[move_name]
+			var targets: Array[int] = []
+			for target in set.moves[mi].cancel_into_names:
+				if CANCEL_TOKENS.has(target): targets.append(int(CANCEL_TOKENS[target]))
+				elif names.has(target): targets.append(int(names[target]))
+			cancels[mi] = targets
+		set._cancels.append(cancels)
+		# Easy auto-combo routes (own routes, else inherited).
+		var auto: Dictionary = (set._auto[parent] as Dictionary).duplicate() if parent >= 0 and not data.has("auto_combo") else {}
+		var routes: Dictionary = data.get("auto_combo", {})
 		for key in routes:
-			if key.begins_with("_"): continue
+			if str(key).begins_with("_"): continue
 			var route: Array = routes[key]
 			for k in range(route.size() - 1):
-				if set.index.has(route[k]) and set.index.has(route[k + 1]):
-					set.auto_next[int(set.index[route[k]])] = int(set.index[route[k + 1]])
-	# Command priority: supers, then longer / more specific motions first.
-	var order := ["236236", "623", "214", "236"]
-	for command in order:
-		for i in range(set.moves.size()):
-			if str(set.moves[i].command) == command:
-				set.specials.append(i)
+				if names.has(route[k]) and names.has(route[k + 1]):
+					auto[int(names[route[k]])] = int(names[route[k + 1]])
+		set._auto.append(auto)
+	# Legacy single-archetype views (universal) used by tools and tests.
+	set.index = set._names[0]
+	set.by_button = set._by_button[0]
+	set.named = set._named[0]
+	set.specials = set._specials[0]
+	set.auto_next = set._auto[0]
+	for mi in range(set.moves.size()):
+		set.moves[mi]["cancel_into"] = set._cancels[0].get(mi, [])
 	return set
 
 
-func _add(name: String, raw: Dictionary) -> void:
+func arch_index(name: String) -> int:
+	var i := archetypes.find(name)
+	return i if i >= 0 else 0
+
+
+func move_for_arch(arch: int, posture: int, button_name: String) -> int:
+	return int(_by_button[arch].get("%s:%s" % [POSTURES[posture], button_name], -1))
+
+
+func specials_for(arch: int) -> Array:
+	return _specials[arch]
+
+
+func named_for(arch: int, name: String) -> int:
+	return int(_named[arch].get(name, -1))
+
+
+func auto_for(arch: int) -> Dictionary:
+	return _auto[arch]
+
+
+func cancels_for(arch: int, move: int) -> Array:
+	return _cancels[arch].get(move, [])
+
+
+func _add(name: String, raw: Dictionary) -> int:
 	var move := {
 		"name": name,
 		"posture": POSTURES.find(str(raw.get("posture", "stand"))),
@@ -111,13 +179,9 @@ func _add(name: String, raw: Dictionary) -> void:
 	}
 	# "startup" is the first active frame, so the move lasts startup + active - 1 + recovery frames.
 	move["total"] = int(move.startup) + int(move.active) - 1 + int(move.recovery)
-	index[name] = moves.size()
 	names.append(name)
 	moves.append(move)
-	if int(move.type) == 0:
-		by_button["%s:%s" % [POSTURES[move.posture], str(raw.get("button", ""))]] = moves.size() - 1
-	else:
-		named[name] = moves.size() - 1
+	return moves.size() - 1
 
 
 func move_for(posture: int, button_name: String) -> int:

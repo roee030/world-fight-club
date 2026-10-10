@@ -54,6 +54,7 @@ static func new_match(moveset, fighters: Array, rng_seed: int = 1, options: Dict
 		s[b + L.F_DRIVE] = int(moveset.rules.drive_max)
 		s[b + L.F_SUPER] = int(def.get("super", 0))
 		if bool(def.get("easy", false)): s[b + L.F_FLAGS] = s[b + L.F_FLAGS] | L.FLAG_EASY
+		s[b + L.F_ARCHETYPE] = moveset.arch_index(str(def.get("archetype", "universal")))
 		s[b + L.F_STATE] = L.S_IDLE
 		s[b + L.F_STATE_FRAME] = 1
 		for k in range(L.HIST_LEN):
@@ -119,7 +120,7 @@ static func _round_flow(moveset, r: Dictionary, s: PackedInt32Array, count: int,
 	for i in range(count):
 		var b := L.base(i)
 		var keep_super := s[b + L.F_SUPER]
-		var keep := [s[b + L.F_START_X], s[b + L.F_HP_MAX], s[b + L.F_WALK], s[b + L.F_TEAM], s[b + L.F_TARGET], s[b + L.F_FLAGS] & L.FLAG_EASY, s[b + L.F_PREV_INPUT]]
+		var keep := [s[b + L.F_START_X], s[b + L.F_HP_MAX], s[b + L.F_WALK], s[b + L.F_TEAM], s[b + L.F_TARGET], s[b + L.F_FLAGS] & L.FLAG_EASY, s[b + L.F_PREV_INPUT], s[b + L.F_ARCHETYPE]]
 		for k in range(L.FIGHTER):
 			s[b + k] = 0
 		s[b + L.F_START_X] = keep[0]
@@ -131,6 +132,7 @@ static func _round_flow(moveset, r: Dictionary, s: PackedInt32Array, count: int,
 		s[b + L.F_TARGET] = keep[4]
 		s[b + L.F_FLAGS] = keep[5]
 		s[b + L.F_PREV_INPUT] = keep[6]
+		s[b + L.F_ARCHETYPE] = keep[7]
 		s[b + L.F_SUPER] = keep_super
 		s[b + L.F_MOVE] = -1
 		s[b + L.F_BUFFER_MOVE] = -1
@@ -179,14 +181,15 @@ static func _motion(s: PackedInt32Array, b: int, seq: String, window: int) -> bo
 
 
 static func _read_commands(moveset, r: Dictionary, s: PackedInt32Array, b: int, inp: int, pressed: int) -> void:
+	var arch := s[b + L.F_ARCHETYPE]
 	# Throw: both light buttons together.
 	if (pressed & (L.IN_LP | L.IN_LK)) != 0 and (inp & L.IN_LP) != 0 and (inp & L.IN_LK) != 0:
-		_buffer_special(r, s, b, int(moveset.named.get("THROW", -1)))
+		_buffer_special(r, s, b, moveset.named_for(arch, "THROW"))
 		return
 	var facing := s[b + L.F_FACING]
 	# Drive: DRIVE + HP = Impact (Drive Rush and Parry are read in neutral).
 	if ((pressed & L.IN_DRIVE) != 0 and (inp & L.IN_HP) != 0) or ((pressed & L.IN_HP) != 0 and (inp & L.IN_DRIVE) != 0):
-		_buffer_special(r, s, b, int(moveset.named.get("IMPACT", -1)))
+		_buffer_special(r, s, b, moveset.named_for(arch, "IMPACT"))
 		return
 	# Easy mode: SP + direction picks the special; SP + HK = Super.
 	if (pressed & L.IN_SP) != 0:
@@ -195,7 +198,7 @@ static func _read_commands(moveset, r: Dictionary, s: PackedInt32Array, b: int, 
 		elif _v(inp) < 0: code = "D"
 		elif _h(inp, facing) > 0: code = "F"
 		elif _h(inp, facing) < 0: code = "B"
-		for move in moveset.specials:
+		for move in moveset.specials_for(arch):
 			if str(moveset.moves[move].easy) == code:
 				_buffer_special(r, s, b, move)
 				s[b + L.F_FLAGS] = s[b + L.F_FLAGS] | L.FLAG_ASSISTED
@@ -207,7 +210,7 @@ static func _read_commands(moveset, r: Dictionary, s: PackedInt32Array, b: int, 
 	if not punch and not kick:
 		return
 	var windows: Dictionary = r.command_window
-	for move in moveset.specials:
+	for move in moveset.specials_for(arch):
 		var m: Dictionary = moveset.moves[move]
 		var cls := str(m.button_class)
 		if (cls == "P" and not punch) or (cls == "K" and not kick):
@@ -494,9 +497,10 @@ static func _gravity(r: Dictionary, s: PackedInt32Array, b: int) -> void:
 
 static func _start_attack(moveset, s: PackedInt32Array, b: int, posture: int, events: PackedInt32Array, i: int) -> bool:
 	var button: String = L.BUTTON_NAMES[s[b + L.F_BUFFER_MOVE]]
-	var move: int = moveset.move_for(posture, button)
+	var arch := s[b + L.F_ARCHETYPE]
+	var move: int = moveset.move_for_arch(arch, posture, button)
 	if move < 0 and posture == 1:
-		move = moveset.move_for(0, button)
+		move = moveset.move_for_arch(arch, 0, button)
 	if move < 0:
 		return false
 	s[b + L.F_FLAGS] = s[b + L.F_FLAGS] & ~L.FLAG_ASSISTED
@@ -562,7 +566,8 @@ static func _try_cancel(moveset, r: Dictionary, s: PackedInt32Array, b: int, m: 
 		return false
 	if bool(m.cancel_hit_only) and connect != 1:
 		return false
-	var into: Array = m.cancel_into
+	var arch := s[b + L.F_ARCHETYPE]
+	var into: Array = moveset.cancels_for(arch, s[b + L.F_MOVE])
 	# Special / super cancels.
 	var special := s[b + L.F_SPECIAL_BUFFER]
 	if special >= 0:
@@ -580,8 +585,9 @@ static func _try_cancel(moveset, r: Dictionary, s: PackedInt32Array, b: int, m: 
 	if s[b + L.F_BUFFER_MOVE] < 0:
 		return false
 	# Easy auto-combo: LP again continues the route (assisted damage).
-	if (s[b + L.F_FLAGS] & L.FLAG_EASY) != 0 and s[b + L.F_BUFFER_MOVE] == 0 and moveset.auto_next.has(s[b + L.F_MOVE]):
-		var next: int = moveset.auto_next[s[b + L.F_MOVE]]
+	var auto: Dictionary = moveset.auto_for(arch)
+	if (s[b + L.F_FLAGS] & L.FLAG_EASY) != 0 and s[b + L.F_BUFFER_MOVE] == 0 and auto.has(s[b + L.F_MOVE]):
+		var next: int = auto[s[b + L.F_MOVE]]
 		s[b + L.F_FLAGS] = s[b + L.F_FLAGS] | L.FLAG_ASSISTED
 		if int(moveset.moves[next].type) != T_NORMAL:
 			_buffer_special(r, s, b, next)
@@ -593,9 +599,9 @@ static func _try_cancel(moveset, r: Dictionary, s: PackedInt32Array, b: int, m: 
 	if posture != 2:
 		posture = 1 if _v(inp) < 0 else 0
 	var button: String = L.BUTTON_NAMES[s[b + L.F_BUFFER_MOVE]]
-	var candidate: int = moveset.move_for(posture, button)
+	var candidate: int = moveset.move_for_arch(arch, posture, button)
 	if candidate < 0 or not candidate in into:
-		candidate = moveset.move_for(0, button) if posture == 1 else -1
+		candidate = moveset.move_for_arch(arch, 0, button) if posture == 1 else -1
 		if candidate < 0 or not candidate in into:
 			return false
 	_begin_move(s, b, candidate, posture == 2, moveset)
@@ -661,7 +667,7 @@ static func _finish_throw(moveset, r: Dictionary, s: PackedInt32Array, thrower: 
 	var b := L.base(thrower)
 	var tb := L.base(victim)
 	var move := s[b + L.F_MOVE]
-	var m: Dictionary = moveset.moves[move] if move >= 0 else moveset.moves[int(moveset.named.THROW)]
+	var m: Dictionary = moveset.moves[move] if move >= 0 else moveset.moves[moveset.named_for(s[b + L.F_ARCHETYPE], "THROW")]
 	var damage := int(m.damage)
 	s[tb + L.F_HP] = maxi(0, s[tb + L.F_HP] - damage)
 	s[tb + L.F_HITS_TAKEN] += 1

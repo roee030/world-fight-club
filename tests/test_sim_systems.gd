@@ -26,7 +26,7 @@ func _fail(message: String) -> void:
 
 func _run() -> void:
 	ms = Moveset.compile(["res://data/movesets/universal.json"])
-	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo, _round_flow]:
+	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo, _round_flow, _archetypes]:
 		var error: String = check.call()
 		if error != "":
 			return _fail(error)
@@ -226,4 +226,22 @@ func _round_flow() -> String:
 	if s[L.H_MATCH_OVER] != 1: return "the match must end"
 	if s[L.H_WINS + 0] != wins_needed or s[L.H_WINS + 1] != 0: return "player 0 must win 2-0 (got %d-%d)" % [s[L.H_WINS], s[L.H_WINS + 1]]
 	if not _has(kinds, L.EV_ROUND_START, -1, 2): return "round 2 must start after round 1"
+	return ""
+
+
+func _archetypes() -> String:
+	# A rushdown fighter overrides moves: faster jab, Lightning Dash instead of a projectile.
+	var both = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json"])
+	var s := Sim.new_match(both, [{"x": -16000, "archetype": "rushdown"}, {"x": 16000}], 3)
+	var kinds: Array[int] = []
+	for f in range(1, 40):
+		var events := Sim.step(both, s, PackedInt32Array([L.IN_SP if f == 1 else 0, L.IN_SP if f == 1 else 0]))
+		for e in range(0, events.size(), L.EVENT_SIZE):
+			kinds.append(events[e]); kinds.append(events[e + 1]); kinds.append(events[e + 2])
+	var rush_dash := int(both._names[both.arch_index("rushdown")]["236P"])
+	if not _has(kinds, L.EV_SPECIAL, 0, rush_dash): return "the rushdown fighter's Easy special must be the Lightning Dash"
+	if _has(kinds, L.EV_PROJECTILE, 0): return "the rushdown fighter has no projectile"
+	if not _has(kinds, L.EV_PROJECTILE, 1): return "the universal fighter keeps the Energy Wave projectile"
+	var jab := int(both._names[both.arch_index("rushdown")]["5LP"])
+	if int(both.moves[jab].startup) != 4: return "the rushdown jab must be faster (startup 4)"
 	return ""
