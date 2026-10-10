@@ -130,6 +130,7 @@ func _new_match() -> void:
 	if not online.is_empty():
 		session = Session.new(moveset, state, local_slot, 2)
 	_show_banner("ROUND 1", 60)
+	if audio != null: _announce_round(1)
 
 
 func _build_world() -> void:
@@ -276,7 +277,19 @@ func _training_refill() -> void:
 	state[L.H_MATCH_OVER] = 0
 
 
+func _announce_round(round_number: int) -> void:
+	var final := state[L.H_WINS] == state[L.H_ROUNDS_TO_WIN] - 1 and state[L.H_WINS + 1] == state[L.H_ROUNDS_TO_WIN] - 1
+	audio.play_voice(&"final_round" if final else (&"round_one" if round_number == 1 else &"round_two"))
+
+
 func _round_presentation() -> void:
+	# Low-health music when either fighter drops under a quarter of their HP.
+	if state[L.H_INTRO] == 0 and state[L.H_WINNER] < 0:
+		var low := false
+		for i in range(2):
+			var b := L.base(i)
+			if state[b + L.F_HP] * 4 < state[b + L.F_HP_MAX]: low = true
+		audio.set_music_state(&"fight_low_health" if low else &"fight")
 	var winner := state[L.H_WINNER]
 	if winner >= 0 and _prev_winner < 0:
 		_show_banner("K.O." if _any_ko() else "TIME", 90)
@@ -384,9 +397,15 @@ func _handle_events(events: PackedInt32Array) -> void:
 				_shake = maxf(_shake, 0.12)
 			L.EV_ROUND_START:
 				_show_banner("ROUND %d" % events[e + 2], 60)
+				_announce_round(events[e + 2])
 			L.EV_FIGHT:
 				_show_banner("FIGHT!", 40)
 				audio.play_voice(&"fight")
+				audio.set_music_state(&"fight")
+			L.EV_MATCH_OVER:
+				audio.set_music_state(&"result")
+				audio.play_sfx(&"victory" if events[e + 2] == local_slot else &"loss")
+				audio.play_voice(&"you_win" if events[e + 2] == local_slot else &"you_lose")
 			L.EV_KO:
 				_shake = 0.35
 				if online.is_empty(): _slowmo = 1.1
