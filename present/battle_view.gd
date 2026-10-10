@@ -18,6 +18,8 @@ const AudioManagerScript = preload("res://scripts/audio/audio_manager.gd")
 const VirtualStickScript = preload("res://scripts/virtual_stick.gd")
 const TouchButtonScript = preload("res://scripts/touch_action_button.gd")
 const Session = preload("res://net/rollback_session.gd")
+const TrainingOverlay = preload("res://present/training_overlay.gd")
+const DUMMY_MODES := ["STAND", "CROUCH", "BLOCK ALL", "JUMP", "CPU"]
 
 const STAGE_ART := "res://assets/stages/kaplan-junction-arena.jpg"
 const MALE := "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf"
@@ -42,6 +44,12 @@ var _last_event_frame := 0
 var _inbox: Array = []
 var _match_over_frames := 0
 var _prev_winner := -1
+## Training mode (F2 toggles; F3 cycles the dummy; F4 refills meters).
+static var start_training := false
+var training := false
+var dummy_mode := 2
+var _overlay: Node3D
+var _hud_root: Control
 ## A local private fighter (git-ignored private/, e.g. the owner) plays as P1
 ## through the 12-pose sprite adapter until it has a rigged 3D model.
 var use_private_fighter := true
@@ -86,6 +94,12 @@ func _ready() -> void:
 		local_slot = int(online.player)
 		online.client.packet_received.connect(func(packet: Dictionary): _inbox.append(packet))
 		online.client.opponent_left.connect(func(): _show_banner("OPPONENT LEFT", 600))
+	_overlay = TrainingOverlay.new()
+	add_child(_overlay)
+	_overlay.setup(_hud_root)
+	training = start_training and online.is_empty()
+	start_training = false
+	_overlay.set_active(training)
 	_new_match()
 
 
@@ -183,8 +197,12 @@ func _physics_process(_delta: float) -> void:
 			inputs[1] = int(pair[1])
 		else:
 			inputs[0] = cpu.decide(state, 0, moveset) if cpu_controls_player else _read_keyboard()
-			inputs[1] = cpu.decide(state, 1, moveset)
-		_handle_events(Sim.step(moveset, state, inputs))
+			inputs[1] = _dummy_input() if training else cpu.decide(state, 1, moveset)
+		var events := Sim.step(moveset, state, inputs)
+		_handle_events(events)
+		if training:
+			_overlay.observe(state, moveset, events)
+			_training_refill()
 	_round_presentation()
 
 
@@ -203,6 +221,37 @@ func _step_online() -> void:
 			_handle_events(entry[1])
 			_last_event_frame = int(entry[0])
 	session.events_out.clear()
+
+
+func _dummy_input() -> int:
+	var b := L.base(1)
+	var toward_player := L.IN_LEFT if state[L.base(0) + L.F_X] < state[b + L.F_X] else L.IN_RIGHT
+	var away := L.IN_RIGHT if toward_player == L.IN_LEFT else L.IN_LEFT
+	match DUMMY_MODES[dummy_mode]:
+		"CROUCH": return L.IN_DOWN
+		"BLOCK ALL":
+			# Blocks highs/mids standing and lows crouching, like a perfect defender.
+			var a := L.base(0)
+			if state[a + L.F_STATE] == L.S_ATTACK and state[a + L.F_MOVE] >= 0 and int(moveset.moves[state[a + L.F_MOVE]].level) == 2:
+				return away | L.IN_DOWN
+			return away
+		"JUMP": return L.IN_UP
+		"CPU": return cpu.decide(state, 1, moveset)
+	return 0
+
+
+func _training_refill() -> void:
+	# Training never ends: HP refills once a combo is over, timer is frozen.
+	state[L.H_TIMER] = int(moveset.rules.round_frames)
+	state[L.H_INTRO] = 0
+	for i in range(2):
+		var b := L.base(i)
+		if state[b + L.F_STATE] in [L.S_IDLE, L.S_WALK_F, L.S_WALK_B, L.S_CROUCH] and state[b + L.F_HITS_TAKEN] == 0:
+			state[b + L.F_HP] = state[b + L.F_HP_MAX]
+		if state[b + L.F_HP] <= 0 or state[b + L.F_STATE] == L.S_KO:
+			state[b + L.F_HP] = state[b + L.F_HP_MAX]
+	state[L.H_WINNER] = -1
+	state[L.H_MATCH_OVER] = 0
 
 
 func _round_presentation() -> void:
@@ -228,6 +277,8 @@ func _process(delta: float) -> void:
 	_update_camera(delta)
 	_update_sparks(delta)
 	_update_projectiles()
+	if training:
+		_overlay.draw_boxes(state, moveset)
 	_update_hud()
 
 
@@ -259,6 +310,19 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		Engine.time_scale = 1.0
 		get_tree().change_scene_to_file("res://scenes/main.tscn")
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F2 and online.is_empty():
+		training = not training
+		_overlay.set_active(training)
+		_show_callout("TRAINING  ·  DUMMY: %s" % DUMMY_MODES[dummy_mode] if training else "VERSUS CPU", 60)
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F3 and training:
+		dummy_mode = (dummy_mode + 1) % DUMMY_MODES.size()
+		_show_callout("DUMMY: %s" % DUMMY_MODES[dummy_mode], 50)
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F4 and training:
+		for i in range(2):
+			state[L.base(i) + L.F_SUPER] = int(moveset.rules.super_max)
+			state[L.base(i) + L.F_DRIVE] = int(moveset.rules.drive_max)
+			state[L.base(i) + L.F_BURNOUT] = 0
+		_show_callout("METERS FULL", 40)
 	if event is InputEventKey and event.pressed and event.keycode == KEY_TAB:
 		easy_controls = not easy_controls
 		var b := L.base(0)
@@ -430,6 +494,7 @@ func _build_hud() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(root)
+	_hud_root = root
 	_dim = ColorRect.new()
 	_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_dim.color = Color(0, 0, 0, 0)

@@ -53,8 +53,8 @@ func _run() -> void:
 	if action_panel == null:
 		return _fail("main menu action panel is missing")
 	var menu_actions := action_panel.find_children("*", "Button", true, false).map(func(button: Button) -> String: return button.text)
-	if menu_actions != ["START FIGHT", "CAMPAIGN", "SETTINGS", "3D ENGINE  ·  BETA", "ONLINE  ·  BETA"]:
-		return _fail("main menu must expose exactly START FIGHT, CAMPAIGN, SETTINGS, the 3D engine beta and online beta")
+	if menu_actions != ["START FIGHT", "CAMPAIGN", "SETTINGS", "3D ENGINE  ·  BETA", "TRAINING  ·  BETA", "ONLINE  ·  BETA"]:
+		return _fail("main menu must expose exactly START FIGHT, CAMPAIGN, SETTINGS, the 3D engine, training and online betas")
 	for button in action_panel.find_children("*", "Button", true, false):
 		if (button as Button).text == "FIGHTER LAB":
 			return _fail("Fighter Lab must not be a player-facing menu action")

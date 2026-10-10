@@ -1513,6 +1513,9 @@ func _build_menu() -> void:
 	var engine_beta := _menu_text_button(action_panel, "3D ENGINE  ·  BETA", Rect2(0, 338, 330, 52), 18)
 	engine_beta.name = "EngineBetaButton"
 	engine_beta.pressed.connect(func(): _track("menu_engine_beta"); get_tree().change_scene_to_file("res://scenes/battle/battle.tscn"))
+	var training_beta := _menu_text_button(action_panel, "TRAINING  ·  BETA", Rect2(0, 462, 330, 52), 18)
+	training_beta.name = "TrainingBetaButton"
+	training_beta.pressed.connect(func(): _track("menu_training_beta"); load("res://present/battle_view.gd").start_training = true; get_tree().change_scene_to_file("res://scenes/battle/battle.tscn"))
 	var online_beta := _menu_text_button(action_panel, "ONLINE  ·  BETA", Rect2(0, 400, 330, 52), 18)
 	online_beta.name = "OnlineBetaButton"
 	online_beta.pressed.connect(func(): _track("menu_online_beta"); get_tree().change_scene_to_file("res://scenes/online/lobby.tscn"))
