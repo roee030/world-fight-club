@@ -46,8 +46,12 @@ class WebCachePolicyTests(unittest.TestCase):
         preset = (ROOT / "export_presets.cfg").read_text(encoding="utf-8")
         for pattern in (
             "export/*",
-            "assets/animations/*",
-            "assets/characters/rigged/*",
+            # The 3D engine ships the shared animation library and base bodies;
+            # only the retired custom rig and unused hair meshes stay out.
+            "assets/characters/rigged/custom/*",
+            "assets/characters/rigged/source/universal-base-characters/Hairstyles/*",
+            # Personal likenesses never ship.
+            "private/*",
             "assets/characters/references/*",
             "assets/characters/sprite-sheets/*",
             "tests/*",

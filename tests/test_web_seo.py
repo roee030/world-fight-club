@@ -65,9 +65,10 @@ class SeoShellTests(unittest.TestCase):
         self.assertEqual(again.count('id="wf-seo"'), 1)
 
     def test_static_site_files_are_published(self):
-        for name in ("robots.txt", "sitemap.xml", "CNAME", "404.html", "favicon.ico", "icon-192.png", "icon-512.png", "icon-512-maskable.png", "apple-touch-icon.png", "og-image.jpg", "about/index.html", "en/index.html", "google5ee28a7b3ea4abc3.html", "terms/index.html", "privacy/index.html", "accessibility/index.html", "licenses/index.html"):
+        for name in ("robots.txt", "sitemap.xml", "404.html", "favicon.ico", "icon-192.png", "icon-512.png", "icon-512-maskable.png", "apple-touch-icon.png", "og-image.jpg", "about/index.html", "en/index.html", "terms/index.html", "privacy/index.html", "accessibility/index.html", "licenses/index.html"):
             self.assertTrue((self.out / name).is_file(), name)
-        self.assertEqual((self.out / "CNAME").read_text(encoding="utf-8").strip(), "israel-election-fight.online")
+        # The fork never claims the original game's custom domain.
+        self.assertFalse((self.out / "CNAME").exists())
         sitemap = (self.out / "sitemap.xml").read_text(encoding="utf-8")
         self.assertNotIn("__BUILD_DATE__", sitemap)
         for path in ("/", "/about/", "/en/", "/terms/", "/privacy/", "/accessibility/", "/licenses/"):
@@ -124,7 +125,8 @@ class SeoShellTests(unittest.TestCase):
             self.assertIn("<loc>https://example.test/about/</loc>", (target / "sitemap.xml").read_text(encoding="utf-8"))
 
     def test_site_config_declares_the_custom_domain(self):
-        self.assertEqual(load_site_config()["site_url"], DEFAULT_SITE_URL)
+        # The fork publishes to its own GitHub Pages URL, not the original domain.
+        self.assertEqual(load_site_config()["site_url"], "https://roee030.github.io/world-fight-club")
 
 
 if __name__ == "__main__":

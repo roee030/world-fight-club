@@ -1509,6 +1509,10 @@ func _build_menu() -> void:
 	var settings := _menu_text_button(action_panel, "SETTINGS", Rect2(0, 276, 330, 52), 18)
 	settings.name = "SettingsButton"
 	settings.pressed.connect(_show_settings.bind(&"menu"))
+	# The new deterministic 3D engine (docs/superpowers/plans/2026-10-11-pro-3d-fighter-master-plan.md).
+	var engine_beta := _menu_text_button(action_panel, "3D ENGINE  ·  BETA", Rect2(0, 338, 330, 52), 18)
+	engine_beta.name = "EngineBetaButton"
+	engine_beta.pressed.connect(func(): _track("menu_engine_beta"); get_tree().change_scene_to_file("res://scenes/battle/battle.tscn"))
 	# Fighter Lab stays available to developers (scenes/character_debug.tscn)
 	# but is not a player-facing menu action. The creator card below the menu
 	# links to the creator's LinkedIn profile.
