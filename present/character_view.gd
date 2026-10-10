@@ -10,13 +10,17 @@ extends Node3D
 
 const AnimLib = preload("res://present/anim_library.gd")
 const Fx = preload("res://present/fx.gd")
+const CharacterLoader = preload("res://content/character_loader.gd")
 const L = preload("res://sim/layout.gd")
 
 const DEFAULT_MODEL := "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf"
 const UNIT := 1.0 / 10000.0
 
 var model_path := DEFAULT_MODEL
-var model: Node3D
+var model: Node3D            # the visible model
+var rig_root: Node3D         # what turns to face the rival (model, or puppet + model)
+var retargeted := false
+var load_error := ""
 var player: AnimationPlayer
 var skeleton: Skeleton3D
 var _leg_ik: TwoBoneIK3D
@@ -34,11 +38,20 @@ var _scale := 1.0   # model head height / reference male head height, for IK tar
 
 func setup(path: String = DEFAULT_MODEL, tint: Color = Color.WHITE) -> void:
 	model_path = path
-	model = (load(path) as PackedScene).instantiate()
-	add_child(model)
-	skeleton = model.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	var built := CharacterLoader.build(path)
+	if str(built.get("error", "")) != "":
+		# Fall back to the default body so a bad avatar file never breaks a match.
+		load_error = str(built.error)
+		push_warning("fighter model %s: %s" % [path, load_error])
+		built = CharacterLoader.build(DEFAULT_MODEL)
+	model = built.model
+	rig_root = built.root
+	retargeted = bool(built.retargeted)
+	add_child(rig_root)
+	skeleton = built.skeleton
+	var animated: Node3D = built.get("animated_root", model)
 	player = AnimationPlayer.new()
-	model.add_child(player)
+	animated.add_child(player)
 	player.root_node = NodePath("..")
 	player.add_animation_library("", AnimLib.library())
 	if tint != Color.WHITE:
@@ -65,11 +78,11 @@ func setup(path: String = DEFAULT_MODEL, tint: Color = Color.WHITE) -> void:
 func _make_ik(root: String, middle: String, end: String, key: String, pole_pos: Vector3) -> TwoBoneIK3D:
 	var target := Marker3D.new()
 	target.name = key + "_target"
-	model.add_child(target)
+	_ik_root().add_child(target)
 	var pole := Marker3D.new()
 	pole.name = key + "_pole"
 	pole.position = pole_pos
-	model.add_child(pole)
+	_ik_root().add_child(pole)
 	var ik := TwoBoneIK3D.new()
 	skeleton.add_child(ik)
 	ik.setting_count = 1
@@ -81,6 +94,10 @@ func _make_ik(root: String, middle: String, end: String, key: String, pole_pos: 
 	ik.influence = 0.0
 	_targets[key] = target
 	return ik
+
+
+func _ik_root() -> Node3D:
+	return player.get_parent() as Node3D
 
 
 func _play(clip: String, speed: float = 1.0) -> void:
@@ -114,7 +131,7 @@ func show_state(s: PackedInt32Array, i: int, moveset) -> void:
 	var sf := s[b + L.F_STATE_FRAME]
 	var facing := s[b + L.F_FACING]
 	position = Vector3(s[b + L.F_X] * UNIT, s[b + L.F_Y] * UNIT, 0.0)
-	model.rotation_degrees.y = 90.0 * facing
+	rig_root.rotation_degrees.y = 90.0 * facing
 	var leg := 0.0
 	var arm_l := 0.0
 	var arm_r := 0.0
@@ -259,7 +276,7 @@ func _set_target(key: String, local: Vector3) -> void:
 	# blocks bend the elbows naturally instead of flipping the arms overhead.
 	if key == "hand_l" or key == "hand_r":
 		var side := 0.45 if key == "hand_l" else -0.45
-		(model.get_node(key + "_pole") as Node3D).position = (local + Vector3(side, -0.55, -0.35)) * _scale
+		(_ik_root().get_node(key + "_pole") as Node3D).position = (local + Vector3(side, -0.55, -0.35)) * _scale
 
 
 static func _phase(m: Dictionary, sf: int) -> float:

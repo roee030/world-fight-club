@@ -18,6 +18,7 @@ const AudioManagerScript = preload("res://scripts/audio/audio_manager.gd")
 const VirtualStickScript = preload("res://scripts/virtual_stick.gd")
 const TouchButtonScript = preload("res://scripts/touch_action_button.gd")
 const Session = preload("res://net/rollback_session.gd")
+const CharacterLoader = preload("res://content/character_loader.gd")
 const TrainingOverlay = preload("res://present/training_overlay.gd")
 const DUMMY_MODES := ["STAND", "CROUCH", "BLOCK ALL", "JUMP", "CPU"]
 
@@ -37,6 +38,10 @@ var _sparks: Array = []
 var cpu_controls_player := false
 ## Online match handed over by the lobby: {"client": ws_client, "player": 0|1, "seed": int}.
 static var pending_online: Dictionary = {}
+## Fighter select hand-over: {"p1": fighter def, "p2": fighter def, "stage": art path}.
+static var pending_selection: Dictionary = {}
+var selection: Dictionary = {}
+var _direct_launch := false   # started without the select screen (tests, captures)
 var online: Dictionary = {}
 var session: RefCounted
 var local_slot := 0
@@ -83,6 +88,13 @@ var _touch_buttons: Dictionary = {}   # input bit -> button
 
 func _ready() -> void:
 	moveset = Moveset.compile(["res://data/movesets/universal.json"])
+	selection = pending_selection
+	pending_selection = {}
+	_direct_launch = selection.is_empty()
+	if selection.is_empty():
+		var defs: Array = CharacterLoader.fighter_definitions()
+		if defs.size() >= 2:
+			selection = {"p1": defs[0], "p2": defs[1], "stage": STAGE_ART}
 	_build_world()
 	_build_hud()
 	_build_touch()
@@ -106,7 +118,11 @@ func _ready() -> void:
 func _new_match() -> void:
 	var seed_value := int(online.get("seed", 1000 + randi() % 1000))
 	# In online play both fighters use the same control rules (Easy auto-combos on).
-	state = Sim.new_match(moveset, [{"x": -16000, "hp": 10000, "easy": easy_controls or not online.is_empty()}, {"x": 16000, "hp": 10000, "easy": true}], seed_value, {"intro": true, "rounds_to_win": 2})
+	var stats0: Dictionary = selection.get("p1", {}).get("stats", {})
+	var stats1: Dictionary = selection.get("p2", {}).get("stats", {})
+	state = Sim.new_match(moveset, [
+		{"x": -16000, "hp": int(stats0.get("hp", 10000)), "walk": int(stats0.get("walk", 541)), "easy": easy_controls or not online.is_empty()},
+		{"x": 16000, "hp": int(stats1.get("hp", 10000)), "walk": int(stats1.get("walk", 541)), "easy": true}], seed_value, {"intro": true, "rounds_to_win": 2})
 	cpu = CpuPilot.new(2, seed_value)
 	_match_over_frames = 0
 	_prev_winner = -1
@@ -146,7 +162,7 @@ func _build_world() -> void:
 	backdrop.mesh = quad
 	var bmat := StandardMaterial3D.new()
 	bmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	bmat.albedo_texture = load(STAGE_ART)
+	bmat.albedo_texture = load(str(selection.get("stage", STAGE_ART)))
 	backdrop.material_override = bmat
 	backdrop.position = Vector3(0, 3.2, -9.0)
 	add_child(backdrop)
@@ -167,23 +183,29 @@ func _build_world() -> void:
 	camera.fov = 38.0
 	add_child(camera)
 	camera.current = true
-	var private_ids: Array = PrivateRoster.ids() if use_private_fighter else []
 	for i in range(2):
-		if i == 0 and not private_ids.is_empty():
-			var id: String = private_ids[0]
+		var def: Dictionary = selection.get("p1" if i == 0 else "p2", {})
+		var private_id := ""
+		if bool(def.get("private", false)):
+			private_id = str(def.id)
+		elif i == 0 and use_private_fighter and _direct_launch and not PrivateRoster.ids().is_empty():
+			private_id = str(PrivateRoster.ids()[0])
+		if private_id != "":
 			var paths: Array = []
 			for frame in range(12):
-				paths.append(PrivateRoster.sprite_path(id, frame))
+				paths.append(PrivateRoster.sprite_path(private_id, frame))
 			var sprite_view := SpriteView.new()
 			add_child(sprite_view)
-			sprite_view.setup_frames(paths, float(PrivateRoster.info(id).get("height_m", 1.8)))
+			sprite_view.setup_frames(paths, float(PrivateRoster.info(private_id).get("height_m", 1.8)))
 			views.append(sprite_view)
-			player_name = str(PrivateRoster.info(id).get("name", id)).to_upper()
+			if i == 0: player_name = str(PrivateRoster.info(private_id).get("name", private_id)).to_upper()
 			continue
 		var view := CharacterView.new()
 		add_child(view)
-		view.setup(MALE if i == 0 else FEMALE, Color(0.85, 0.92, 1.1) if i == 0 else Color(1.1, 0.88, 0.85))
+		var tint: Array = def.get("tint", [1, 1, 1])
+		view.setup(str(def.get("model", MALE if i == 0 else FEMALE)), Color(float(tint[0]), float(tint[1]), float(tint[2])))
 		views.append(view)
+		if i == 0 and not def.is_empty(): player_name = str(def.get("name", "YOU"))
 
 
 func _physics_process(_delta: float) -> void:

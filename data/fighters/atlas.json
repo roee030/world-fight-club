@@ -1,0 +1,10 @@
+{
+  "_doc": "A fighter is data: model (any rigged humanoid GLB; non-canonical rigs are retargeted at runtime), look and archetype stats. See content/character_loader.gd.",
+  "id": "atlas",
+  "order": "1",
+  "name": "ATLAS",
+  "archetype": "all-rounder",
+  "model": "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf",
+  "tint": [0.85, 0.92, 1.1],
+  "stats": {"hp": 10000, "walk": 541}
+}

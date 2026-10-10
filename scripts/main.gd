@@ -1512,7 +1512,7 @@ func _build_menu() -> void:
 	# The new deterministic 3D engine (docs/superpowers/plans/2026-10-11-pro-3d-fighter-master-plan.md).
 	var engine_beta := _menu_text_button(action_panel, "3D ENGINE  ·  BETA", Rect2(0, 338, 330, 52), 18)
 	engine_beta.name = "EngineBetaButton"
-	engine_beta.pressed.connect(func(): _track("menu_engine_beta"); get_tree().change_scene_to_file("res://scenes/battle/battle.tscn"))
+	engine_beta.pressed.connect(func(): _track("menu_engine_beta"); get_tree().change_scene_to_file("res://scenes/battle/select.tscn"))
 	var training_beta := _menu_text_button(action_panel, "TRAINING  ·  BETA", Rect2(0, 462, 330, 52), 18)
 	training_beta.name = "TrainingBetaButton"
 	training_beta.pressed.connect(func(): _track("menu_training_beta"); load("res://present/battle_view.gd").start_training = true; get_tree().change_scene_to_file("res://scenes/battle/battle.tscn"))
