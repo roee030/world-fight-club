@@ -26,7 +26,7 @@ func _fail(message: String) -> void:
 
 func _run() -> void:
 	ms = Moveset.compile(["res://data/movesets/universal.json"])
-	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo, _round_flow, _archetypes]:
+	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo, _round_flow, _archetypes, _command_grab]:
 		var error: String = check.call()
 		if error != "":
 			return _fail(error)
@@ -244,4 +244,22 @@ func _archetypes() -> String:
 	if not _has(kinds, L.EV_PROJECTILE, 1): return "the universal fighter keeps the Energy Wave projectile"
 	var jab := int(both._names[both.arch_index("rushdown")]["5LP"])
 	if int(both.moves[jab].startup) != 4: return "the rushdown jab must be faster (startup 4)"
+	return ""
+
+
+func _command_grab() -> String:
+	# The grappler's command grab beats blocking and cannot be teched.
+	var all = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json", "res://data/movesets/grappler.json"])
+	var s := Sim.new_match(all, [{"x": -5200, "archetype": "grappler"}, {"x": 5200}], 3)
+	var kinds: Array[int] = []
+	for f in range(1, 60):
+		# Player 1 holds back (blocking) and mashes tech; player 0 does SP + forward (Iron Hug).
+		# (mashing starts once grabbed; earlier it would be a throw attempt of its own)
+		var p1 := L.IN_RIGHT | ((L.IN_LP | L.IN_LK) if f >= 8 and f % 2 == 0 else 0)
+		var events := Sim.step(all, s, PackedInt32Array([(L.IN_SP | L.IN_RIGHT) if f == 1 else 0, p1]))
+		for e in range(0, events.size(), L.EVENT_SIZE):
+			kinds.append(events[e]); kinds.append(events[e + 1]); kinds.append(events[e + 2])
+	if _has(kinds, L.EV_TECH): return "a command grab must not be teched"
+	if not _has(kinds, L.EV_THROW, 0): return "the Iron Hug must grab a blocking rival"
+	if 10000 - _f(s, 1, L.F_HP) != 1700: return "Iron Hug damage must be 1700 (got %d)" % (10000 - _f(s, 1, L.F_HP))
 	return ""

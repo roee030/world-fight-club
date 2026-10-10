@@ -73,6 +73,7 @@ const FLAG_AIR_MOVE := 256
 const FLAG_CROUCH_BLOCK := 512
 const FLAG_EASY := 1024
 const FLAG_ASSISTED := 2048
+const FLAG_NO_TECH := 4096   # being command-grabbed (cannot tech)
 const F_HIST_POS := 30      # ring index of the input history
 const F_SPECIAL_BUFFER := 31  # buffered special/super move index or -1
 const F_HIST := 32          # HIST_LEN facing-relative numpad directions (ring)

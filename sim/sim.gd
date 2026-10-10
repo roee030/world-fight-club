@@ -393,7 +393,7 @@ static func _step_fighter(moveset, r: Dictionary, s: PackedInt32Array, i: int, i
 			s[b + L.F_STUN] -= 1
 			var thrower := s[b + L.F_TARGET]
 			var tb := L.base(thrower)
-			if (pressed & (L.IN_LP | L.IN_LK)) != 0 and (inp & L.IN_LP) != 0 and (inp & L.IN_LK) != 0:
+			if (s[b + L.F_FLAGS] & L.FLAG_NO_TECH) == 0 and (pressed & (L.IN_LP | L.IN_LK)) != 0 and (inp & L.IN_LP) != 0 and (inp & L.IN_LK) != 0:
 				# Throw tech: both fighters break apart, nobody takes damage.
 				_enter(s, b, L.S_IDLE)
 				_enter(s, tb, L.S_IDLE)
@@ -534,7 +534,7 @@ static func _start_special(moveset, r: Dictionary, s: PackedInt32Array, b: int, 
 		s[b + L.F_DRIVE] -= int(m.drive_cost)
 		if s[b + L.F_DRIVE] <= 0: _burnout(s, b, events, i)
 	_begin_move(s, b, move, false, moveset)
-	if kind == T_THROW:
+	if kind == T_THROW or bool(m.command_grab):
 		_enter(s, b, L.S_THROW)
 	_emit(events, L.EV_SPECIAL if kind != T_THROW else L.EV_ATTACK, i, move, 0)
 	return true
@@ -657,7 +657,9 @@ static func _try_throw(moveset, r: Dictionary, s: PackedInt32Array, i: int, m: D
 	s[b + L.F_MOVE_CONNECT] = 1
 	s[tb + L.F_MOVE] = -1
 	_enter(s, tb, L.S_THROWN)
-	s[tb + L.F_STUN] = int(r.throw_tech_window)
+	s[tb + L.F_STUN] = 1 if bool(m.command_grab) else int(r.throw_tech_window)
+	if bool(m.command_grab): s[tb + L.F_FLAGS] = s[tb + L.F_FLAGS] | L.FLAG_NO_TECH
+	else: s[tb + L.F_FLAGS] = s[tb + L.F_FLAGS] & ~L.FLAG_NO_TECH
 	s[tb + L.F_TARGET] = i
 	s[tb + L.F_FACING] = -s[b + L.F_FACING]
 	s[tb + L.F_X] = s[b + L.F_X] + s[b + L.F_FACING] * 7000
@@ -668,12 +670,15 @@ static func _finish_throw(moveset, r: Dictionary, s: PackedInt32Array, thrower: 
 	var tb := L.base(victim)
 	var move := s[b + L.F_MOVE]
 	var m: Dictionary = moveset.moves[move] if move >= 0 else moveset.moves[moveset.named_for(s[b + L.F_ARCHETYPE], "THROW")]
-	var damage := int(m.damage)
+	var scaling: Array = r.scaling
+	var scale := maxi(int(r.scaling_min), int(scaling[mini(s[tb + L.F_HITS_TAKEN], scaling.size() - 1)]))
+	var damage := maxi(int(m.damage) * scale / 100, int(m.damage) * int(m.min_damage_percent) / 100)
 	s[tb + L.F_HP] = maxi(0, s[tb + L.F_HP] - damage)
 	s[tb + L.F_HITS_TAKEN] += 1
 	s[b + L.F_COMBO] = s[tb + L.F_HITS_TAKEN]
 	s[b + L.F_COMBO_DAMAGE] += damage
-	_gain_super(r, s, b, damage * int(r.super_gain_hit_percent) / 100)
+	if int(m.type) != T_SUPER:
+		_gain_super(r, s, b, damage * int(r.super_gain_hit_percent) / 100)
 	_enter(s, tb, L.S_LAUNCHED)
 	s[tb + L.F_VX] = s[b + L.F_FACING] * int(m.launch_vx)
 	s[tb + L.F_VY] = int(m.launch_vy)

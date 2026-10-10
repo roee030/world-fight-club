@@ -175,6 +175,7 @@ func _add(name: String, raw: Dictionary) -> int:
 		"drive_cost": int(raw.get("drive_cost", 0)),
 		"min_damage_percent": int(raw.get("min_damage_percent", 0)),
 		"range": int(raw.get("range", 0)),
+		"command_grab": bool(raw.get("command_grab", false)),
 		"display_name": str(raw.get("name", name)),
 	}
 	# "startup" is the first active frame, so the move lasts startup + active - 1 + recovery frames.

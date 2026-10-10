@@ -1,0 +1,11 @@
+{
+  "id": "titan",
+  "order": "3",
+  "name": "TITAN",
+  "archetype": "grappler",
+  "moveset": "grappler",
+  "model": "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Male_FullBody.gltf",
+  "tint": [0.75, 0.62, 0.55],
+  "scale": 1.12,
+  "stats": {"hp": 11500, "walk": 470}
+}

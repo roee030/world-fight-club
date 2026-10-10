@@ -1,0 +1,28 @@
+{
+  "_doc": "Grappler archetype (TITAN): slower, heavier normals with more reach, an untechable command grab (623K) and a grab Super. Inherits universal.",
+  "schema": 1,
+  "moveset": "grappler",
+  "inherits": "universal",
+  "moves": {
+    "5HP": {"posture": "stand", "button": "HP", "anim": "cross", "startup": 11, "active": 4, "recovery": 20,
+            "hitbox": [3500, 12000, 11000, 3500], "level": "mid", "damage": 850, "hitstun": 23, "blockstun": 16, "hitstop": 11, "pushback": 350,
+            "cancel": {"from": 11, "to": 20, "into": ["5HK", "SPECIAL", "SUPER", "RUSH"]}},
+    "5HK": {"posture": "stand", "button": "HK", "anim": "kick", "startup": 14, "active": 4, "recovery": 22,
+            "hitbox": [4000, 8500, 11500, 4000], "level": "mid", "damage": 950, "hitstun": 25, "blockstun": 17, "hitstop": 12, "pushback": 500,
+            "properties": ["wall_splat"], "cancel": {"from": 14, "to": 22, "into": ["SPECIAL", "SUPER"]}},
+    "236P": {"type": "special", "command": "236", "button": "P", "easy": "N", "name": "Shoulder Charge", "anim": "cross", "startup": 14, "active": 6, "recovery": 22,
+             "hitbox": [2000, 9000, 9000, 6000], "armor": 1, "motion": {"from": 1, "to": 18, "vx": 900},
+             "level": "mid", "damage": 900, "hitstun": 24, "blockstun": 14, "hitstop": 12, "pushback": 700, "properties": ["wall_splat"]},
+    "623K": {"type": "special", "command": "623", "button": "K", "easy": "F", "name": "Iron Hug", "anim": "jab", "startup": 6, "active": 3, "recovery": 34,
+             "command_grab": true, "range": 13500, "damage": 1700, "hitbox": [0, 0, 0, 0], "level": "throw", "hitstun": 0, "blockstun": 0, "hitstop": 14, "pushback": 0,
+             "launch": {"vx": 200, "vy": 1300}},
+    "SUPER": {"type": "super", "command": "236236", "button": "P", "easy": "SUPER", "name": "Earthquake Slam", "anim": "jab", "startup": 4, "active": 4, "recovery": 40,
+              "command_grab": true, "range": 15000, "super_cost": 10000, "super_freeze": 34, "invuln": [1, 6],
+              "damage": 3000, "min_damage_percent": 60, "hitbox": [0, 0, 0, 0], "level": "throw", "hitstun": 0, "blockstun": 0, "hitstop": 20, "pushback": 0, "launch": {"vx": 150, "vy": 1600}}
+  },
+  "auto_combo": {
+    "stand": ["5LP", "5HP", "5HK", "236P"],
+    "crouch": ["2LP", "2LK", "2HP"],
+    "air": ["j.LP", "j.HP", "j.HK"]
+  }
+}

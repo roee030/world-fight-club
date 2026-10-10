@@ -87,7 +87,7 @@ var _touch_buttons: Dictionary = {}   # input bit -> button
 
 
 func _ready() -> void:
-	moveset = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json"])
+	moveset = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json", "res://data/movesets/grappler.json"])
 	selection = pending_selection
 	pending_selection = {}
 	_direct_launch = selection.is_empty()
@@ -205,6 +205,7 @@ func _build_world() -> void:
 		add_child(view)
 		var tint: Array = def.get("tint", [1, 1, 1])
 		view.setup(str(def.get("model", MALE if i == 0 else FEMALE)), Color(float(tint[0]), float(tint[1]), float(tint[2])))
+		view.rig_root.scale = Vector3.ONE * float(def.get("scale", 1.0))
 		views.append(view)
 		if i == 0 and not def.is_empty(): player_name = str(def.get("name", "YOU"))
 
