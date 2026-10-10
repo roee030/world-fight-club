@@ -86,6 +86,7 @@ var _callout_time := 0
 var _zoom_punch := 0.0
 var _slowmo := 0.0
 var _touch_buttons: Dictionary = {}   # input bit -> button
+var _hint: Label
 
 
 func _ready() -> void:
@@ -640,14 +641,14 @@ func _build_hud() -> void:
 	_callout.anchor_bottom = 0.2
 	_callout.offset_bottom = 50
 	_callout.add_theme_color_override("font_color", Color("#ffe27a"))
-	var hint := _label(root, "A/D move  W jump  S crouch  J/K punch  U/I kick  L special (+dir)  L+I super  O drive (hold parry, +fwd rush, +K impact)  J+U throw  back = block  Esc menu", 13, HORIZONTAL_ALIGNMENT_CENTER)
-	hint.anchor_left = 0.0
-	hint.anchor_right = 1.0
-	hint.anchor_top = 1.0
-	hint.anchor_bottom = 1.0
-	hint.offset_top = -30
-	hint.offset_bottom = -8
-	hint.modulate = Color(1, 1, 1, 0.7)
+	_hint = _label(root, "A/D move  W jump  S crouch  J/K punch  U/I kick  L special (+dir)  L+I super  O drive (hold parry, +fwd rush, +K impact)  J+U throw  back = block  Esc menu", 13, HORIZONTAL_ALIGNMENT_CENTER)
+	_hint.anchor_left = 0.0
+	_hint.anchor_right = 1.0
+	_hint.anchor_top = 1.0
+	_hint.anchor_bottom = 1.0
+	_hint.offset_top = -30
+	_hint.offset_bottom = -8
+	_hint.modulate = Color(1, 1, 1, 0.7)
 
 
 func _build_touch() -> void:
@@ -665,8 +666,8 @@ func _build_touch() -> void:
 	_stick.anchor_bottom = 1.0
 	_stick.offset_left = 40
 	_stick.offset_right = 230
-	_stick.offset_top = -250
-	_stick.offset_bottom = -60
+	_stick.offset_top = -290
+	_stick.offset_bottom = -100
 	_stick.visible = show
 	var pad := Control.new()
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -675,14 +676,16 @@ func _build_touch() -> void:
 	pad.anchor_top = 1.0
 	pad.anchor_bottom = 1.0
 	pad.offset_left = -300
-	pad.offset_top = -280
+	pad.offset_top = -380
 	pad.offset_right = -20
-	pad.offset_bottom = -20
+	pad.offset_bottom = -90
 	pad.visible = show
 	root.add_child(pad)
 	var layout := [[L.IN_LP, "LP", "fist", Color("#239f9b"), Vector2(20, 90)], [L.IN_HP, "HP", "cross", Color("#c8443f"), Vector2(110, 10)],
 		[L.IN_LK, "LK", "boot", Color("#2f7fd0"), Vector2(110, 170)], [L.IN_HK, "HK", "bolt", Color("#d08a2f"), Vector2(200, 90)],
 		[L.IN_SP, "SP", "spark", Color("#c9a227"), Vector2(-70, 180)], [L.IN_DRIVE, "DRIVE", "shield", Color("#2fb36a"), Vector2(-70, 60)]]
+	if show and _hint != null:
+		_hint.visible = false   # keyboard help is noise on a phone
 	for entry in layout:
 		var button = TouchButtonScript.new()
 		pad.add_child(button)
