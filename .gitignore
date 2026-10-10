@@ -18,3 +18,6 @@ tools/.goatcounter-token
 # Real press photos used only as private art-direction references; never publish them
 assets/characters/references/
 assets/characters/*-reference.png
+
+# personal likeness files, never committed
+private/
