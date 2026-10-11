@@ -74,7 +74,20 @@ func _run() -> void:
 		return _fail("online battle scenes desynced")
 	if battles[0].local_slot == battles[1].local_slot:
 		return _fail("both scenes control the same fighter")
-	print("PASS: two battle scenes played %d frames online in sync" % a.frame)
+	# Rematch: end the match on both sides, both request, both rebuild the same match.
+	for b in battles:
+		b.state[L.H_MATCH_OVER] = 1
+		b.state[L.H_WINNER] = 0
+		b.request_rematch()
+	for wait in range(120):
+		await process_frame
+		for b in battles: b.online.client.poll()
+		if not battles[0]._rematch_local and not battles[1]._rematch_local: break
+	if battles[0]._rematch_local or battles[1]._rematch_local:
+		return _fail("both players requesting a rematch must start a new match")
+	if battles[0].state[L.H_FRAME] != 0 or battles[0].session.checksum() != battles[1].session.checksum():
+		return _fail("the rematch must start identically on both sides")
+	print("PASS: two battle scenes played %d frames online in sync, then rematched" % a.frame)
 	for b in battles: b.queue_free()
 	relay.stop()
 	quit()

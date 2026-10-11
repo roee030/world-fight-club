@@ -96,6 +96,7 @@ var paused := false
 var _pause_menu: Control   # per fighter: MeshInstance3D or null
 var _touch_buttons: Dictionary = {}   # input bit -> button
 var _hint: Label
+var _rematch_button: Button
 var replay := Replay.new()
 var _replaying := false
 var _replay_frame := 0
@@ -103,7 +104,9 @@ var _damage_dealt := 0
 var _best_combo := 0
 var _rounds_lost := 0
 var _progress_recorded := false
-var _daily_events: Array = []   # [kind, amount] collected during the match, applied at the end
+var _daily_events: Array = []
+var _rematch_local := false
+var _rematch_remote := false   # [kind, amount] collected during the match, applied at the end
 static var profile_path := Profile.PATH   # tests point this at a scratch file
 
 
@@ -127,6 +130,7 @@ func _ready() -> void:
 		local_slot = int(online.player)
 		online.client.packet_received.connect(func(packet: Dictionary): _inbox.append(packet))
 		online.client.opponent_left.connect(func(): _show_banner("OPPONENT LEFT", 600))
+		online.client.rematch_requested.connect(func(): _rematch_remote = true; _try_rematch())
 	var pause_layer := CanvasLayer.new()
 	pause_layer.layer = 5
 	add_child(pause_layer)
@@ -171,6 +175,7 @@ func _new_match() -> void:
 	_last_event_frame = 0
 	if not online.is_empty():
 		session = Session.new(moveset, state, local_slot, 2)
+		if _rematch_button != null: _rematch_button.visible = false
 	var arcade_info: Dictionary = selection.get("arcade", {})
 	if not arcade_info.is_empty():
 		_show_banner("ARCADE %d / %d" % [int(arcade_info.index) + 1, (arcade_info.ladder as Array).size()], 70)
@@ -313,10 +318,14 @@ func _physics_process(_delta: float) -> void:
 func _step_online() -> void:
 	online.client.poll()
 	for packet in _inbox:
-		session.receive(packet)
+		# Packets carry their match id (seed): late inputs from a previous match are dropped.
+		if int(packet.get("m", 0)) == int(online.seed):
+			session.receive(packet)
 	_inbox.clear()
 	if not session.should_stall():
-		online.client.send_packet(session.add_local_input(_read_keyboard()))
+		var packet: Dictionary = session.add_local_input(_read_keyboard())
+		packet["m"] = int(online.seed)
+		online.client.send_packet(packet)
 	session.advance()
 	state = session.state
 	# Present each frame's events once: only frames newer than the last shown.
@@ -370,6 +379,28 @@ func _advance_arcade() -> bool:
 	pending_selection = {"p1": selection.p1, "p2": step.rival, "stage": selection.get("stage", STAGE_ART), "arcade": {"ladder": ladder, "index": next, "level": step.level}}
 	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
 	return true
+
+
+## Online: both players ask for a rematch; the next match uses the next seed,
+## so both peers build the identical new match without the lobby.
+func request_rematch() -> void:
+	if _rematch_local:
+		return
+	_rematch_local = true
+	online.client.send_rematch()
+	_show_callout("REMATCH REQUESTED - WAITING FOR RIVAL", 600)
+	_try_rematch()
+
+
+func _try_rematch() -> void:
+	if not (_rematch_local and _rematch_remote) or state[L.H_MATCH_OVER] == 0:
+		return
+	_rematch_local = false
+	_rematch_remote = false
+	online.seed = int(online.seed) + 1
+	_inbox.clear()
+	_new_match()
+	_show_callout("REMATCH!", 60)
 
 
 func set_paused(value: bool) -> void:
@@ -452,6 +483,9 @@ func _round_presentation() -> void:
 		_match_over_frames += 1
 		if _match_over_frames == 100:
 			_show_banner("YOU WIN" if state[L.H_WINNER] == local_slot else "YOU LOSE", 200)
+			if not online.is_empty():
+				_show_callout("R / REMATCH BUTTON: PLAY AGAIN   ·   ESC: LEAVE", 900)
+				if _rematch_button != null: _rematch_button.visible = true
 			if online.is_empty() and not training and replay.frames() > 0 and replay.final_hash == "":
 				replay.final_hash = Sim.state_hash(state)
 				replay.save(LAST_REPLAY)
@@ -515,6 +549,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			state[L.base(i) + L.F_DRIVE] = int(moveset.rules.drive_max)
 			state[L.base(i) + L.F_BURNOUT] = 0
 		_show_callout("METERS FULL", 40)
+	if event is InputEventKey and event.pressed and event.keycode == KEY_R and not online.is_empty() and state[L.H_MATCH_OVER] != 0:
+		request_rematch()
 	if event is InputEventKey and event.pressed and event.keycode == KEY_R and online.is_empty() and replay.final_hash != "" and not _replaying:
 		start_replay()
 	if event is InputEventKey and event.pressed and event.keycode == KEY_TAB:
@@ -914,6 +950,18 @@ func _build_touch() -> void:
 	pause_button.visible = show
 	pause_button.pressed.connect(func(): set_paused(true) if online.is_empty() else _quit_to_menu())
 	root.add_child(pause_button)
+	_rematch_button = Button.new()
+	_rematch_button.text = "REMATCH"
+	_rematch_button.anchor_left = 0.5
+	_rematch_button.anchor_right = 0.5
+	_rematch_button.anchor_top = 0.62
+	_rematch_button.anchor_bottom = 0.62
+	_rematch_button.offset_left = -110
+	_rematch_button.offset_right = 110
+	_rematch_button.offset_bottom = 60
+	_rematch_button.visible = false
+	_rematch_button.pressed.connect(func(): request_rematch())
+	root.add_child(_rematch_button)
 	for entry in layout:
 		var button = TouchButtonScript.new()
 		pad.add_child(button)

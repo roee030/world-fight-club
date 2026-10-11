@@ -90,7 +90,7 @@ func _handle(ws: WebSocketPeer, msg: Dictionary, raw: String) -> void:
 			log_line.emit("room %s started" % room)
 		else:
 			_send(ws, {"op": "waiting"})
-	elif op == "input":
+	elif op == "input" or op == "rematch":
 		var info: Dictionary = _clients.get(ws, {})
 		for other in _rooms.get(info.get("room", ""), []):
 			if other != ws:

@@ -8,6 +8,7 @@ signal waiting
 signal opponent_left
 signal packet_received(packet: Dictionary)
 signal failed(reason: String)
+signal rematch_requested
 
 var ws := WebSocketPeer.new()
 var room := ""
@@ -46,6 +47,7 @@ func poll() -> void:
 				"left": opponent_left.emit()
 				"full": failed.emit("room is full")
 				"input": packet_received.emit(_decode(msg))
+				"rematch": rematch_requested.emit()
 	elif st == WebSocketPeer.STATE_CLOSED and _joined:
 		_joined = false
 		failed.emit("disconnected")
@@ -60,7 +62,12 @@ func send_packet(packet: Dictionary) -> void:
 	var inputs := {}
 	for f in packet.inputs:
 		inputs[str(f)] = int(packet.inputs[f])
-	ws.send_text(JSON.stringify({"op": "input", "player": int(packet.player), "inputs": inputs}))
+	ws.send_text(JSON.stringify({"op": "input", "player": int(packet.player), "inputs": inputs, "m": int(packet.get("m", 0))}))
+
+
+func send_rematch() -> void:
+	if ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
+		ws.send_text(JSON.stringify({"op": "rematch"}))
 
 
 func close() -> void:
@@ -72,4 +79,4 @@ static func _decode(msg: Dictionary) -> Dictionary:
 	var raw: Dictionary = msg.get("inputs", {})
 	for key in raw:
 		inputs[int(key)] = int(raw[key])
-	return {"player": int(msg.get("player", 0)), "inputs": inputs}
+	return {"player": int(msg.get("player", 0)), "inputs": inputs, "m": int(msg.get("m", 0))}
