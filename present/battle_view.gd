@@ -105,6 +105,8 @@ var _best_combo := 0
 var _rounds_lost := 0
 var _progress_recorded := false
 var _daily_events: Array = []
+var cpus: Array = []            # one CPU pilot per fighter (used for non-human slots)
+var _mini_bars: Array = []      # 2v2: partner health bars (fighters 2 and 3)
 var _rematch_local := false
 var _rematch_remote := false   # [kind, amount] collected during the match, applied at the end
 static var profile_path := Profile.PATH   # tests point this at a scratch file
@@ -151,11 +153,13 @@ func _ready() -> void:
 func _new_match() -> void:
 	var seed_value := int(online.get("seed", 1000 + randi() % 1000))
 	# In online play both fighters use the same control rules (Easy auto-combos on).
-	var stats0: Dictionary = selection.get("p1", {}).get("stats", {})
-	var stats1: Dictionary = selection.get("p2", {}).get("stats", {})
-	var defs := [
-		{"x": -16000, "hp": int(stats0.get("hp", 10000)), "walk": int(stats0.get("walk", 541)), "power": int(stats0.get("power", 100)), "easy": easy_controls or not online.is_empty(), "archetype": str(selection.get("p1", {}).get("moveset", "universal"))},
-		{"x": 16000, "hp": int(stats1.get("hp", 10000)), "walk": int(stats1.get("walk", 541)), "power": int(stats1.get("power", 100)), "easy": true, "archetype": str(selection.get("p2", {}).get("moveset", "universal"))}]
+	var fighter_defs := _fighter_defs()
+	var spawn := [-16000, 16000, -24000, 24000]
+	var defs := []
+	for i in range(fighter_defs.size()):
+		var stats: Dictionary = fighter_defs[i].get("stats", {})
+		defs.append({"x": spawn[i], "team": i % 2, "hp": int(stats.get("hp", 10000)), "walk": int(stats.get("walk", 541)), "power": int(stats.get("power", 100)),
+			"easy": (easy_controls or not online.is_empty()) if i == local_slot else true, "archetype": str(fighter_defs[i].get("moveset", "universal"))})
 	var options := {"intro": true, "rounds_to_win": 2}
 	state = Sim.new_match(moveset, defs, seed_value, options)
 	replay.start(defs, seed_value, options)
@@ -164,7 +168,11 @@ func _new_match() -> void:
 	var settings_profile = Profile.load_profile(profile_path)
 	if not _direct_launch:
 		easy_controls = bool(settings_profile.setting("easy_controls", easy_controls)) or DisplayServer.is_touchscreen_available()
-	cpu = CpuPilot.new(int(arcade.get("level", settings_profile.setting("cpu_level", 2))), seed_value)
+	var cpu_level := int(arcade.get("level", settings_profile.setting("cpu_level", 2)))
+	cpu = CpuPilot.new(cpu_level, seed_value)
+	cpus = []
+	for i in range(defs.size()):
+		cpus.append(cpu if i == 1 else CpuPilot.new(cpu_level, seed_value + 31 * i))
 	_damage_dealt = 0
 	_best_combo = 0
 	_rounds_lost = 0
@@ -238,8 +246,9 @@ func _build_world() -> void:
 	camera.fov = 38.0
 	add_child(camera)
 	camera.current = true
-	for i in range(2):
-		var def: Dictionary = selection.get("p1" if i == 0 else "p2", {})
+	var fighter_defs := _fighter_defs()
+	for i in range(fighter_defs.size()):
+		var def: Dictionary = fighter_defs[i]
 		var private_id := ""
 		if bool(def.get("private", false)):
 			private_id = str(def.id)
@@ -258,7 +267,7 @@ func _build_world() -> void:
 		var view := CharacterView.new()
 		add_child(view)
 		var tint: Array = def.get("tint", [1, 1, 1])
-		view.setup(str(def.get("model", MALE if i == 0 else FEMALE)), Color(float(tint[0]), float(tint[1]), float(tint[2])))
+		view.setup(str(def.get("model", MALE if i % 2 == 0 else FEMALE)), Color(float(tint[0]), float(tint[1]), float(tint[2])))
 		view.rig_root.scale = Vector3.ONE * float(def.get("scale", 1.0))
 		views.append(view)
 		if i == 0 and not def.is_empty(): player_name = str(def.get("name", "YOU"))
@@ -291,21 +300,25 @@ func _physics_process(_delta: float) -> void:
 	if not online.is_empty():
 		_step_online()
 	else:
-		var inputs := PackedInt32Array([0, 0])
+		var count := state[L.H_FIGHTERS]
+		var inputs := PackedInt32Array()
+		inputs.resize(count)
 		if not headless_inputs.is_empty():
 			var pair: Array = headless_inputs.pop_front()
 			inputs[0] = int(pair[0])
 			inputs[1] = int(pair[1])
+			for i in range(2, count): inputs[i] = cpus[i].decide(state, i, moveset)
 		else:
-			inputs[0] = cpu.decide(state, 0, moveset) if cpu_controls_player else _read_keyboard()
-			inputs[1] = _dummy_input() if training else cpu.decide(state, 1, moveset)
+			inputs[0] = cpus[0].decide(state, 0, moveset) if cpu_controls_player else _read_keyboard()
+			inputs[1] = _dummy_input() if training else cpus[1].decide(state, 1, moveset)
+			for i in range(2, count): inputs[i] = cpus[i].decide(state, i, moveset)
 		if _replaying:
 			inputs = replay.inputs_at(_replay_frame)
 			_replay_frame += 1
 			if _replay_frame >= replay.frames():
 				_replaying = false
 				_show_banner("REPLAY END", 90)
-		elif not training:
+		elif not training and count == 2:
 			replay.record(inputs)
 		var events := Sim.step(moveset, state, inputs)
 		_handle_events(events)
@@ -338,7 +351,7 @@ func _step_online() -> void:
 
 func _record_progress() -> void:
 	_progress_recorded = true
-	var won := state[L.H_WINNER] == local_slot
+	var won := state[L.H_WINNER] == _local_team()
 	var perfect := won and state[L.H_WINS + (1 - local_slot)] == 0 and state[L.base(local_slot) + L.F_HP] == state[L.base(local_slot) + L.F_HP_MAX]
 	var profile = Profile.load_profile(profile_path)
 	var fighter_id := str(selection.get("p1", {}).get("id", "atlas"))
@@ -368,7 +381,7 @@ func _advance_arcade() -> bool:
 		return false
 	var ladder: Array = arcade.ladder
 	var index := int(arcade.index)
-	var won := state[L.H_WINNER] == local_slot
+	var won := state[L.H_WINNER] == _local_team()
 	if won and index >= ladder.size() - 1:
 		_show_banner("ARCADE CLEAR!", 240)
 		pending_selection = {}
@@ -379,6 +392,19 @@ func _advance_arcade() -> bool:
 	pending_selection = {"p1": selection.p1, "p2": step.rival, "stage": selection.get("stage", STAGE_ART), "arcade": {"ladder": ladder, "index": next, "level": step.level}}
 	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
 	return true
+
+
+## Fighters in sim order: leaders (P1, P2) first, then the 2v2 partners.
+func _fighter_defs() -> Array:
+	var defs: Array = [selection.get("p1", {}), selection.get("p2", {})]
+	if bool(selection.get("team", false)):
+		defs.append(selection.get("p1b", {}))
+		defs.append(selection.get("p2b", {}))
+	return defs
+
+
+func _local_team() -> int:
+	return state[L.base(local_slot) + L.F_TEAM]
 
 
 ## Online: both players ask for a rematch; the next match uses the next seed,
@@ -474,7 +500,7 @@ func _round_presentation() -> void:
 			if state[b + L.F_HP] * 4 < state[b + L.F_HP_MAX]: low = true
 		audio.set_music_state(&"fight_low_health" if low else &"fight")
 	var winner := state[L.H_WINNER]
-	if winner >= 0 and _prev_winner < 0 and winner == local_slot and state[L.base(local_slot) + L.F_HP] == state[L.base(local_slot) + L.F_HP_MAX]:
+	if winner >= 0 and _prev_winner < 0 and winner == _local_team() and state[L.base(local_slot) + L.F_HP] == state[L.base(local_slot) + L.F_HP_MAX]:
 		_daily_events.append(["perfect_round", 1])
 	if winner >= 0 and _prev_winner < 0:
 		_show_banner("K.O." if _any_ko() else "TIME", 90)
@@ -482,7 +508,7 @@ func _round_presentation() -> void:
 	if state[L.H_MATCH_OVER] != 0:
 		_match_over_frames += 1
 		if _match_over_frames == 100:
-			_show_banner("YOU WIN" if state[L.H_WINNER] == local_slot else "YOU LOSE", 200)
+			_show_banner("YOU WIN" if state[L.H_WINNER] == _local_team() else "YOU LOSE", 200)
 			if not online.is_empty():
 				_show_callout("R / REMATCH BUTTON: PLAY AGAIN   ·   ESC: LEAVE", 900)
 				if _rematch_button != null: _rematch_button.visible = true
@@ -503,6 +529,9 @@ func _process(delta: float) -> void:
 		Engine.time_scale = 0.3 if _slowmo > 0.0 else 1.0
 	for i in range(views.size()):
 		views[i].show_state(state, i, moveset)
+		if i >= 2:
+			# 2v2 partners stand a step behind the fighting plane (visual only).
+			views[i].position.z = -0.6
 	_update_camera(delta)
 	_update_sparks(delta)
 	_update_projectiles()
@@ -604,8 +633,8 @@ func _handle_events(events: PackedInt32Array) -> void:
 				audio.set_music_state(&"fight")
 			L.EV_MATCH_OVER:
 				audio.set_music_state(&"result")
-				audio.play_sfx(&"victory" if events[e + 2] == local_slot else &"loss")
-				audio.play_voice(&"you_win" if events[e + 2] == local_slot else &"you_lose")
+				audio.play_sfx(&"victory" if events[e + 2] == _local_team() else &"loss")
+				audio.play_voice(&"you_win" if events[e + 2] == _local_team() else &"you_lose")
 			L.EV_KO:
 				_shake = 0.35
 				if online.is_empty(): _slowmo = 1.1
@@ -753,8 +782,17 @@ func _update_sparks(delta: float) -> void:
 
 
 func _update_camera(delta: float) -> void:
-	var x0 := state[L.base(0) + L.F_X] / 10000.0
-	var x1 := state[L.base(1) + L.F_X] / 10000.0
+	var x0 := INF
+	var x1 := -INF
+	for i in range(state[L.H_FIGHTERS]):
+		var fb := L.base(i)
+		if state[fb + L.F_STATE] == L.S_KO and state[L.H_FIGHTERS] > 2:
+			continue
+		x0 = minf(x0, state[fb + L.F_X] / 10000.0)
+		x1 = maxf(x1, state[fb + L.F_X] / 10000.0)
+	if x0 == INF:
+		x0 = 0.0
+		x1 = 0.0
 	var mid := (x0 + x1) * 0.5
 	var spread := absf(x1 - x0)
 	var distance := clampf(4.6 + spread * 0.55, 5.2, 9.0)
@@ -894,6 +932,21 @@ func _build_hud() -> void:
 	_callout.anchor_bottom = 0.2
 	_callout.offset_bottom = 50
 	_callout.add_theme_color_override("font_color", Color("#ffe27a"))
+	if bool(selection.get("team", false)):
+		# 2v2: partner health under each leader's Drive gauge.
+		for k in range(2):
+			var mini = SlantBar.new()
+			mini.max_value = 10000
+			mini.value = 10000
+			mini.segments = 4
+			mini.fill_color = Color("#3fe0dc").darkened(0.25) if k == 0 else Color("#ff6b5a").darkened(0.25)
+			mini.mirrored = k == 1
+			mini.anchor_left = 0.03 if k == 0 else 0.76
+			mini.anchor_right = 0.24 if k == 0 else 0.97
+			mini.offset_top = 112
+			mini.offset_bottom = 128
+			root.add_child(mini)
+			_mini_bars.append(mini)
 	_hint = _label(root, "A/D move  W jump  S crouch  J/K punch  U/I kick  L special (+dir)  L+I super  O drive (hold parry, +fwd rush, +K impact)  J+U throw  back = block  Esc pause / move list", 13, HORIZONTAL_ALIGNMENT_CENTER)
 	_hint.anchor_left = 0.0
 	_hint.anchor_right = 1.0
@@ -1035,6 +1088,10 @@ func _update_hud() -> void:
 		_combo_labels[i].scale = _combo_labels[i].scale.lerp(Vector2.ONE, 0.25)
 		_round_pips[i].text = "* ".repeat(state[L.H_WINS + i]).strip_edges()
 	_timer_label.text = str(int(ceil(state[L.H_TIMER] / 60.0)))
+	for k in range(_mini_bars.size()):
+		var mb := L.base(2 + k)
+		_mini_bars[k].max_value = state[mb + L.F_HP_MAX]
+		_mini_bars[k].value = state[mb + L.F_HP]
 	_mode_label.text = "EASY  (TAB)" if easy_controls else "PRO  (TAB)"
 	for i in range(2):
 		var b := L.base(i)

@@ -652,6 +652,8 @@ static func _set_state(s: PackedInt32Array, b: int, state: int) -> void:
 
 static func _face_target(s: PackedInt32Array, i: int) -> void:
 	var b := L.base(i)
+	if s[L.H_FIGHTERS] > 2:
+		s[b + L.F_TARGET] = _nearest_enemy(s, i)
 	var t := L.base(s[b + L.F_TARGET])
 	var dx := s[t + L.F_X] - s[b + L.F_X]
 	if dx > 0: s[b + L.F_FACING] = 1
@@ -1035,8 +1037,13 @@ static func _check_ko(s: PackedInt32Array, ba: int, bd: int, d: int, a: int, eve
 	s[bd + L.F_VX] = s[ba + L.F_FACING] * 300
 	s[bd + L.F_VY] = maxi(s[bd + L.F_VY], 700)
 	s[bd + L.F_Y] = maxi(s[bd + L.F_Y], 1)
-	s[L.H_WINNER] = s[ba + L.F_TEAM]
 	_emit(events, L.EV_KO, d, a, 0)
+	var team_alive := false
+	for j in range(s[L.H_FIGHTERS]):
+		if s[L.base(j) + L.F_TEAM] == s[bd + L.F_TEAM] and s[L.base(j) + L.F_STATE] != L.S_KO:
+			team_alive = true
+	if not team_alive:
+		s[L.H_WINNER] = s[ba + L.F_TEAM]
 
 
 static func _push(r: Dictionary, s: PackedInt32Array, ba: int, bd: int, facing: int, amount: int, projectile: bool) -> void:
@@ -1050,33 +1057,31 @@ static func _push(r: Dictionary, s: PackedInt32Array, ba: int, bd: int, facing: 
 
 
 static func _decide_by_time(s: PackedInt32Array, count: int) -> void:
-	var best := -1
-	var best_ratio := -1
-	var draw := false
+	# Team life ratio (sum of each member's remaining HP permille).
+	var totals := [0, 0]
 	for i in range(count):
 		var b := L.base(i)
-		var ratio := s[b + L.F_HP] * 1000 / maxi(1, s[b + L.F_HP_MAX])
-		if ratio > best_ratio:
-			best_ratio = ratio
-			best = s[b + L.F_TEAM]
-			draw = false
-		elif ratio == best_ratio and s[b + L.F_TEAM] != best:
-			draw = true
-	s[L.H_WINNER] = 99 if draw else best
+		totals[s[b + L.F_TEAM] % 2] += s[b + L.F_HP] * 1000 / maxi(1, s[b + L.F_HP_MAX])
+	if totals[0] == totals[1]: s[L.H_WINNER] = 99
+	else: s[L.H_WINNER] = 0 if totals[0] > totals[1] else 1
 
 
 static func _nearest_enemy(s: PackedInt32Array, i: int) -> int:
 	var b := L.base(i)
 	var best := i
 	var best_dist := 1 << 30
+	var fallback := -1
 	for j in range(s[L.H_FIGHTERS]):
 		if j == i or s[L.base(j) + L.F_TEAM] == s[b + L.F_TEAM]:
+			continue
+		if fallback < 0: fallback = j
+		if s[L.base(j) + L.F_STATE] == L.S_KO:
 			continue
 		var dist := absi(s[L.base(j) + L.F_X] - s[b + L.F_X])
 		if dist < best_dist:
 			best_dist = dist
 			best = j
-	return best
+	return best if best != i else (fallback if fallback >= 0 else i)
 
 
 static func _emit(events: PackedInt32Array, kind: int, fighter: int, a: int, b: int) -> void:

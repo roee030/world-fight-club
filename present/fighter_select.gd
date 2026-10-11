@@ -104,6 +104,7 @@ func _ready() -> void:
 	row.add_child(_button("STAGE", func(): _stage = (_stage + 1) % STAGES.size(); _refresh()))
 	row.add_child(_button("FIGHT!", _start))
 	row.add_child(_button("ARCADE", _start_arcade))
+	row.add_child(_button("2 VS 2", _start_team))
 	row.add_child(_button("CREATE", func(): get_tree().change_scene_to_file("res://scenes/battle/creator.tscn")))
 	_level_button = _button("", _cycle_level)
 	row.add_child(_level_button)
@@ -151,6 +152,19 @@ func _toggle_controls() -> void:
 func _update_setting_buttons() -> void:
 	_level_button.text = "CPU LV %d" % int(_profile.setting("cpu_level", 2))
 	_controls_button.text = "EASY" if bool(_profile.setting("easy_controls", false)) else "PRO"
+
+
+## 2v2: your fighter + a CPU partner against your chosen rival + one more.
+func _start_team() -> void:
+	var others: Array = []
+	for k in range(fighters.size()):
+		if k != _player and k != _rival and not bool(fighters[k].get("private", false)):
+			others.append(fighters[k])
+	if others.size() < 2:
+		others.append_array([fighters[_rival], fighters[_player]])
+	others.shuffle()
+	Battle.pending_selection = {"p1": fighters[_player], "p2": fighters[_rival], "p1b": others[0], "p2b": others[1], "team": true, "stage": STAGES[_stage].art}
+	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
 
 
 func _start_arcade() -> void:
