@@ -26,7 +26,7 @@ func _fail(message: String) -> void:
 
 func _run() -> void:
 	ms = Moveset.compile(["res://data/movesets/universal.json"])
-	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo, _round_flow, _archetypes, _command_grab]:
+	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo, _round_flow, _archetypes, _command_grab, _multi_hit_and_punish]:
 		var error: String = check.call()
 		if error != "":
 			return _fail(error)
@@ -262,4 +262,30 @@ func _command_grab() -> String:
 	if _has(kinds, L.EV_TECH): return "a command grab must not be teched"
 	if not _has(kinds, L.EV_THROW, 0): return "the Iron Hug must grab a blocking rival"
 	if 10000 - _f(s, 1, L.F_HP) != 1700: return "Iron Hug damage must be 1700 (got %d)" % (10000 - _f(s, 1, L.F_HP))
+	return ""
+
+
+func _multi_hit_and_punish() -> String:
+	# The Super Art lands 5 separate hits.
+	var s := _match(-6000, 6000, 10000)
+	var kinds := _play(s, 4, {1: D, 2: D | R, 3: R})
+	kinds.append_array(_play(s, 120, {1: D, 2: D | R, 3: R | L.IN_LP}))
+	var super_hits := 0
+	for k in range(0, kinds.size(), 3):
+		if kinds[k] == L.EV_HIT and kinds[k + 1] == 0 and kinds[k + 2] == _move("SUPER"): super_hits += 1
+	if super_hits != 5: return "the Super Art must land 5 hits (landed %d)" % super_hits
+	# Punish counter: player 1 whiffs a heavy kick; once it is in recovery,
+	# player 0 steps next to it and jabs (hits on the jab's 5th frame).
+	var q := _match(-20000, 6000)
+	_play(q, 1, {}, {1: L.IN_HK})
+	var guard := 0
+	while _f(q, 1, L.F_STATE_FRAME) < 18 and guard < 60:
+		guard += 1
+		Sim.step(ms, q, PackedInt32Array([0, 0]))
+	q[L.base(0) + L.F_X] = _f(q, 1, L.F_X) - 9500
+	var kinds3 := _play(q, 12, {1: L.IN_LP})
+	var punished := false
+	for k in range(0, kinds3.size(), 3):
+		if kinds3[k] == L.EV_COUNTER and kinds3[k + 1] == 0: punished = true
+	if not punished: return "a jab into the heavy kick's recovery must be a punish counter"
 	return ""

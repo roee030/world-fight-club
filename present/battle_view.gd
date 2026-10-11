@@ -395,7 +395,7 @@ func _handle_events(events: PackedInt32Array) -> void:
 				_spark(who, moveset.moves[events[e + 2]], Color(0.45, 0.75, 1.0), 0.3)
 				audio.play_sfx(&"guard_hit")
 			L.EV_COUNTER:
-				_show_banner("COUNTER!", 35)
+				_show_banner("PUNISH COUNTER!" if events[e + 3] == 2 else "COUNTER!", 35)
 				_shake = maxf(_shake, 0.2)
 			L.EV_LAUNCH:
 				_shake = maxf(_shake, 0.12)

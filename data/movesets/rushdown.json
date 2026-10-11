@@ -4,29 +4,242 @@
   "moveset": "rushdown",
   "inherits": "universal",
   "moves": {
-    "5LP": {"posture": "stand", "button": "LP", "anim": "jab", "startup": 4, "active": 3, "recovery": 9,
-            "hitbox": [3000, 12000, 7500, 2500], "level": "mid", "damage": 260, "hitstun": 15, "blockstun": 11, "hitstop": 6, "pushback": 230,
-            "cancel": {"from": 4, "to": 13, "into": ["5LP", "5HP", "5LK", "5HK", "2HP", "SPECIAL", "SUPER", "RUSH"]}},
-    "5HK": {"posture": "stand", "button": "HK", "anim": "kick", "startup": 10, "active": 3, "recovery": 17,
-            "hitbox": [3500, 9500, 9500, 3500], "level": "mid", "damage": 720, "hitstun": 23, "blockstun": 15, "hitstop": 10, "pushback": 420,
-            "properties": ["wall_splat"], "cancel": {"from": 10, "to": 20, "into": ["SPECIAL", "SUPER", "RUSH"]}},
-    "236P": {"type": "special", "command": "236", "button": "P", "easy": "N", "name": "Lightning Dash", "anim": "cross", "startup": 10, "active": 4, "recovery": 20,
-             "hitbox": [2500, 10000, 9000, 3500], "motion": {"from": 1, "to": 12, "vx": 1250},
-             "level": "mid", "damage": 800, "hitstun": 22, "blockstun": 15, "hitstop": 10, "pushback": 500, "cancel": {"from": 10, "to": 16, "on_hit_only": true, "into": ["SUPER"]}},
-    "236K": {"type": "special", "command": "236", "button": "K", "easy": "B", "name": "Overhead Leap", "anim": "kick", "startup": 18, "active": 5, "recovery": 16,
-             "hitbox": [2500, 9000, 8500, 5000], "motion": {"from": 1, "to": 18, "vx": 700},
-             "level": "overhead", "damage": 750, "hitstun": 24, "blockstun": 14, "hitstop": 10, "pushback": 350},
-    "214K": {"type": "special", "command": "214", "button": "K", "easy": "F", "name": "Spinning Heel", "anim": "kick", "startup": 12, "active": 6, "recovery": 18,
-             "hitbox": [3000, 8000, 10000, 4500], "motion": {"from": 1, "to": 14, "vx": 650},
-             "level": "mid", "damage": 950, "hitstun": 26, "blockstun": 14, "hitstop": 11, "pushback": 550, "properties": ["wall_splat"], "launch": {"vx": 250, "vy": 900},
-             "cancel": {"from": 12, "to": 18, "on_hit_only": true, "into": ["SUPER"]}},
-    "SUPER": {"type": "super", "command": "236236", "button": "P", "easy": "SUPER", "name": "Thousand Cuts", "anim": "cross", "startup": 6, "active": 8, "recovery": 36,
-              "hitbox": [2000, 8000, 12000, 8000], "invuln": [1, 10], "super_cost": 10000, "super_freeze": 30, "motion": {"from": 1, "to": 14, "vx": 1300},
-              "level": "mid", "damage": 2400, "min_damage_percent": 50, "hitstun": 40, "blockstun": 22, "hitstop": 16, "pushback": 500, "launch": {"vx": 500, "vy": 1200}, "properties": ["wall_splat"]}
+    "5LP": {
+      "posture": "stand",
+      "button": "LP",
+      "anim": "jab",
+      "startup": 4,
+      "active": 3,
+      "recovery": 9,
+      "hitbox": [
+        3000,
+        12000,
+        7500,
+        2500
+      ],
+      "level": "mid",
+      "damage": 260,
+      "hitstun": 15,
+      "blockstun": 11,
+      "hitstop": 6,
+      "pushback": 230,
+      "cancel": {
+        "from": 4,
+        "to": 13,
+        "into": [
+          "5LP",
+          "5HP",
+          "5LK",
+          "5HK",
+          "2HP",
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "5HK": {
+      "posture": "stand",
+      "button": "HK",
+      "anim": "kick",
+      "startup": 10,
+      "active": 3,
+      "recovery": 17,
+      "hitbox": [
+        3500,
+        9500,
+        9500,
+        3500
+      ],
+      "level": "mid",
+      "damage": 720,
+      "hitstun": 23,
+      "blockstun": 15,
+      "hitstop": 10,
+      "pushback": 420,
+      "properties": [
+        "wall_splat"
+      ],
+      "cancel": {
+        "from": 10,
+        "to": 20,
+        "into": [
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "236P": {
+      "type": "special",
+      "command": "236",
+      "button": "P",
+      "easy": "N",
+      "name": "Lightning Dash",
+      "anim": "cross",
+      "startup": 10,
+      "active": 4,
+      "recovery": 20,
+      "hitbox": [
+        2500,
+        10000,
+        9000,
+        3500
+      ],
+      "motion": {
+        "from": 1,
+        "to": 12,
+        "vx": 1250
+      },
+      "level": "mid",
+      "damage": 800,
+      "hitstun": 22,
+      "blockstun": 15,
+      "hitstop": 10,
+      "pushback": 500,
+      "cancel": {
+        "from": 10,
+        "to": 16,
+        "on_hit_only": true,
+        "into": [
+          "SUPER"
+        ]
+      }
+    },
+    "236K": {
+      "type": "special",
+      "command": "236",
+      "button": "K",
+      "easy": "B",
+      "name": "Overhead Leap",
+      "anim": "kick",
+      "startup": 18,
+      "active": 5,
+      "recovery": 16,
+      "hitbox": [
+        2500,
+        9000,
+        8500,
+        5000
+      ],
+      "motion": {
+        "from": 1,
+        "to": 18,
+        "vx": 700
+      },
+      "level": "overhead",
+      "damage": 750,
+      "hitstun": 24,
+      "blockstun": 14,
+      "hitstop": 10,
+      "pushback": 350
+    },
+    "214K": {
+      "type": "special",
+      "command": "214",
+      "button": "K",
+      "easy": "F",
+      "name": "Spinning Heel",
+      "anim": "kick",
+      "startup": 12,
+      "active": 6,
+      "recovery": 18,
+      "hitbox": [
+        3000,
+        8000,
+        10000,
+        4500
+      ],
+      "motion": {
+        "from": 1,
+        "to": 14,
+        "vx": 650
+      },
+      "level": "mid",
+      "damage": 950,
+      "hitstun": 26,
+      "blockstun": 14,
+      "hitstop": 11,
+      "pushback": 550,
+      "properties": [
+        "wall_splat"
+      ],
+      "launch": {
+        "vx": 250,
+        "vy": 900
+      },
+      "cancel": {
+        "from": 12,
+        "to": 18,
+        "on_hit_only": true,
+        "into": [
+          "SUPER"
+        ]
+      },
+      "hits": 2,
+      "hit_interval": 3
+    },
+    "SUPER": {
+      "type": "super",
+      "command": "236236",
+      "button": "P",
+      "easy": "SUPER",
+      "name": "Thousand Cuts",
+      "anim": "cross",
+      "startup": 6,
+      "active": 12,
+      "recovery": 36,
+      "hitbox": [
+        2000,
+        8000,
+        12000,
+        8000
+      ],
+      "invuln": [
+        1,
+        10
+      ],
+      "super_cost": 10000,
+      "super_freeze": 30,
+      "motion": {
+        "from": 1,
+        "to": 14,
+        "vx": 1300
+      },
+      "level": "mid",
+      "damage": 2400,
+      "min_damage_percent": 50,
+      "hitstun": 40,
+      "blockstun": 22,
+      "hitstop": 5,
+      "pushback": 500,
+      "launch": {
+        "vx": 500,
+        "vy": 1200
+      },
+      "properties": [
+        "wall_splat"
+      ],
+      "hits": 6,
+      "hit_interval": 2
+    }
   },
   "auto_combo": {
-    "stand": ["5LP", "5LK", "5HK", "214K"],
-    "crouch": ["2LP", "2LK", "2HP"],
-    "air": ["j.LP", "j.HP", "j.HK"]
+    "stand": [
+      "5LP",
+      "5LK",
+      "5HK",
+      "214K"
+    ],
+    "crouch": [
+      "2LP",
+      "2LK",
+      "2HP"
+    ],
+    "air": [
+      "j.LP",
+      "j.HP",
+      "j.HK"
+    ]
   }
 }

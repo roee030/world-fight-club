@@ -107,5 +107,11 @@
   "assist_damage_percent": 80,
   "intro_frames": 90,
   "round_end_frames": 180,
-  "rounds_to_win": 2
+  "rounds_to_win": 2,
+  "punish_counter": {
+    "hitstun_bonus": 6,
+    "damage_percent": 120,
+    "hitstop_bonus": 6,
+    "drive_drain": 5000
+  }
 }

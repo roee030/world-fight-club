@@ -529,7 +529,7 @@
       "name": "Election Day Crusher",
       "anim": "cross",
       "startup": 9,
-      "active": 6,
+      "active": 10,
       "recovery": 40,
       "hitbox": [
         2000,
@@ -553,7 +553,7 @@
       "min_damage_percent": 50,
       "hitstun": 40,
       "blockstun": 24,
-      "hitstop": 18,
+      "hitstop": 6,
       "pushback": 500,
       "launch": {
         "vx": 450,
@@ -561,7 +561,9 @@
       },
       "properties": [
         "wall_splat"
-      ]
+      ],
+      "hits": 5,
+      "hit_interval": 2
     },
     "IMPACT": {
       "type": "drive",

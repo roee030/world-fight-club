@@ -544,6 +544,7 @@ static func _begin_move(s: PackedInt32Array, b: int, move: int, airborne: bool, 
 	_enter(s, b, L.S_ATTACK)
 	s[b + L.F_MOVE] = move
 	s[b + L.F_MOVE_CONNECT] = 0
+	s[b + L.F_MOVE_HITS] = 0
 	s[b + L.F_BUFFER_MOVE] = -1
 	s[b + L.F_BUFFER_FRAMES] = 0
 	s[b + L.F_ARMOR] = int(moveset.moves[move].armor)
@@ -811,9 +812,17 @@ static func _resolve_hits(moveset, r: Dictionary, s: PackedInt32Array, count: in
 	var contacts: Array[int] = []
 	for a in range(count):
 		var ba := L.base(a)
-		if s[ba + L.F_STATE] != L.S_ATTACK or s[ba + L.F_MOVE_CONNECT] != 0 or s[ba + L.F_HITSTOP] > 0 or s[ba + L.F_SUPER_FREEZE] > 0:
+		if s[ba + L.F_STATE] != L.S_ATTACK or s[ba + L.F_HITSTOP] > 0 or s[ba + L.F_SUPER_FREEZE] > 0:
 			continue
 		var m: Dictionary = moveset.moves[s[ba + L.F_MOVE]]
+		var connect := s[ba + L.F_MOVE_CONNECT]
+		if connect == 3:
+			continue
+		if connect != 0:
+			# Multi-hit moves strike again every hit_interval frames until all hits are used.
+			var done := s[ba + L.F_MOVE_HITS]
+			if done >= int(m.hits) or s[ba + L.F_STATE_FRAME] - int(m.startup) < done * int(m.hit_interval):
+				continue
 		if bool(m.projectile) or int(m.type) == T_THROW:
 			continue
 		var sf := s[ba + L.F_STATE_FRAME]
@@ -891,6 +900,7 @@ static func _apply_hit(moveset, r: Dictionary, s: PackedInt32Array, a: int, d: i
 			s[bd + L.F_HP] = maxi(1, s[bd + L.F_HP] - int(m.damage) / 2)
 			if not projectile:
 				s[ba + L.F_MOVE_CONNECT] = 2
+				s[ba + L.F_MOVE_HITS] += 1
 				s[ba + L.F_HITSTOP] = hitstop
 			s[bd + L.F_HITSTOP] = hitstop
 			_emit(events, L.EV_ARMOR, d, move, 0)
@@ -902,7 +912,7 @@ static func _apply_hit(moveset, r: Dictionary, s: PackedInt32Array, a: int, d: i
 	var blocked := can_block and holding_back and not (level == 2 and not crouching) and not (level == 3 and crouching)
 	var rush_bonus := int(r.rush.bonus_stun) if s[ba + L.F_RUSH] > 0 and not projectile else 0
 	if blocked:
-		var chip := int(m.damage) * int(r.chip_percent) / 100
+		var chip := int(m.damage) / int(m.hits) * int(r.chip_percent) / 100
 		s[bd + L.F_HP] = maxi(1, s[bd + L.F_HP] - chip)
 		_enter(s, bd, L.S_BLOCKSTUN)
 		s[bd + L.F_STUN] = int(m.blockstun) + rush_bonus + (int(r.burnout_blockstun) if s[bd + L.F_BURNOUT] != 0 else 0)
@@ -911,6 +921,7 @@ static func _apply_hit(moveset, r: Dictionary, s: PackedInt32Array, a: int, d: i
 		else: s[bd + L.F_FLAGS] = s[bd + L.F_FLAGS] & ~512
 		if not projectile:
 			s[ba + L.F_MOVE_CONNECT] = 2
+			s[ba + L.F_MOVE_HITS] += 1
 			s[ba + L.F_HITSTOP] = maxi(s[ba + L.F_HITSTOP], hitstop - 2)
 		_push(r, s, ba, bd, facing, int(m.pushback), projectile)
 		s[bd + L.F_HITSTOP] = maxi(s[bd + L.F_HITSTOP], hitstop - 2)
@@ -920,16 +931,27 @@ static func _apply_hit(moveset, r: Dictionary, s: PackedInt32Array, a: int, d: i
 			if s[bd + L.F_DRIVE] == 0: _burnout(s, bd, events, d)
 		_emit(events, L.EV_BLOCK, a, move, chip)
 		return
-	var counter := dstate == L.S_ATTACK and s[bd + L.F_MOVE] >= 0 and s[bd + L.F_STATE_FRAME] < int(moveset.moves[s[bd + L.F_MOVE]].startup)
+	var counter := false
+	var punish := false
+	if dstate == L.S_ATTACK and s[bd + L.F_MOVE] >= 0:
+		var dm2: Dictionary = moveset.moves[s[bd + L.F_MOVE]]
+		var dsf := s[bd + L.F_STATE_FRAME]
+		counter = dsf < int(dm2.startup)
+		punish = dsf >= int(dm2.startup) + int(dm2.active)
 	var scaling: Array = r.scaling
 	var taken := s[bd + L.F_HITS_TAKEN]
 	var scale := maxi(int(r.scaling_min), int(scaling[mini(taken, scaling.size() - 1)]))
-	var damage := int(m.damage) * scale / 100
+	var hits := int(m.hits)
+	var damage := int(m.damage) / hits * scale / 100
 	if int(m.min_damage_percent) > 0:
-		damage = maxi(damage, int(m.damage) * int(m.min_damage_percent) / 100)
+		damage = maxi(damage, int(m.damage) / hits * int(m.min_damage_percent) / 100)
 	if counter:
 		damage = damage * int(r.counter_hit.damage_percent) / 100
 		hitstop += int(r.counter_hit.hitstop_bonus)
+	elif punish:
+		damage = damage * int(r.punish_counter.damage_percent) / 100
+		hitstop += int(r.punish_counter.hitstop_bonus)
+		s[bd + L.F_DRIVE] = maxi(0, s[bd + L.F_DRIVE] - int(r.punish_counter.drive_drain))
 	if (s[ba + L.F_FLAGS] & L.FLAG_ASSISTED) != 0 and not projectile:
 		damage = damage * int(r.assist_damage_percent) / 100
 	damage = maxi(1, damage)
@@ -940,6 +962,7 @@ static func _apply_hit(moveset, r: Dictionary, s: PackedInt32Array, a: int, d: i
 	s[ba + L.F_COMBO_DAMAGE] = (s[ba + L.F_COMBO_DAMAGE] if taken > 0 else 0) + damage
 	if not projectile:
 		s[ba + L.F_MOVE_CONNECT] = 1
+		s[ba + L.F_MOVE_HITS] += 1
 	if kind != T_SUPER:
 		_gain_super(r, s, ba, damage * int(r.super_gain_hit_percent) / 100)
 	_gain_super(r, s, bd, damage * int(r.super_gain_taken_percent) / 100)
@@ -978,14 +1001,14 @@ static func _apply_hit(moveset, r: Dictionary, s: PackedInt32Array, a: int, d: i
 		_emit(events, L.EV_LAUNCH, d, move, 0)
 	else:
 		_enter(s, bd, L.S_HITSTUN)
-		s[bd + L.F_STUN] = int(m.hitstun) + rush_bonus + (int(r.counter_hit.hitstun_bonus) if counter else 0)
+		s[bd + L.F_STUN] = int(m.hitstun) + rush_bonus + (int(r.counter_hit.hitstun_bonus) if counter else 0) + (int(r.punish_counter.hitstun_bonus) if punish else 0)
 		_push(r, s, ba, bd, facing, int(m.pushback), projectile)
 	if not projectile:
 		s[ba + L.F_HITSTOP] = maxi(s[ba + L.F_HITSTOP], hitstop)
 	s[bd + L.F_HITSTOP] = maxi(s[bd + L.F_HITSTOP], hitstop)
 	_emit(events, L.EV_HIT, a, move, damage)
-	if counter:
-		_emit(events, L.EV_COUNTER, a, move, 0)
+	if counter or punish:
+		_emit(events, L.EV_COUNTER, a, move, 2 if punish else 1)
 	_check_ko(s, ba, bd, d, a, events)
 
 

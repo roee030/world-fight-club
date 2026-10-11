@@ -87,6 +87,7 @@ const F_PROJECTILE_OUT := 61  # 1 while this fighter's projectile is alive
 const F_SUPER_FREEZE := 62  # frames of super flash left (both fighters frozen)
 const F_START_X := 63       # spawn position, restored every round
 const F_ARCHETYPE := 64     # moveset archetype index (Moveset.archetypes)
+const F_MOVE_HITS := 65     # hits landed (or blocked) by the current multi-hit move
 const FIGHTER := 72
 
 # Projectiles live after the fighter blocks.
