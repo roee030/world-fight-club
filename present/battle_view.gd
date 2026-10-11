@@ -21,6 +21,7 @@ const SlantBar = preload("res://scripts/hud/slant_bar.gd")
 const Replay = preload("res://sim/replay.gd")
 const Profile = preload("res://meta/profile.gd")
 const PauseMenu = preload("res://present/pause_menu.gd")
+const DeviceInput = preload("res://input/device_input.gd")
 const LAST_REPLAY := "user://replays/last.json"
 const Session = preload("res://net/rollback_session.gd")
 const CharacterLoader = preload("res://content/character_loader.gd")
@@ -441,17 +442,7 @@ func _process(delta: float) -> void:
 
 
 func _read_keyboard() -> int:
-	var bits := 0
-	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT): bits |= L.IN_LEFT
-	if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT): bits |= L.IN_RIGHT
-	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP): bits |= L.IN_UP
-	if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN): bits |= L.IN_DOWN
-	if Input.is_key_pressed(KEY_J): bits |= L.IN_LP
-	if Input.is_key_pressed(KEY_K): bits |= L.IN_HP
-	if Input.is_key_pressed(KEY_U): bits |= L.IN_LK
-	if Input.is_key_pressed(KEY_I): bits |= L.IN_HK
-	if Input.is_key_pressed(KEY_L): bits |= L.IN_SP
-	if Input.is_key_pressed(KEY_O): bits |= L.IN_DRIVE
+	var bits := DeviceInput.read_keyboard() | DeviceInput.read_gamepad(0)
 	# Phone: virtual stick + four attack buttons (held state; the sim finds presses).
 	if _stick != null and _stick.visible:
 		var axis: Vector2 = _stick.axis
@@ -465,7 +456,7 @@ func _read_keyboard() -> int:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ESCAPE, KEY_P]:
+	if DeviceInput.is_pause_event(event):
 		# Online matches cannot pause (the opponent keeps playing); Esc there quits.
 		if not online.is_empty():
 			_quit_to_menu()
