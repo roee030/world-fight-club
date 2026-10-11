@@ -79,13 +79,14 @@ func _handle(ws: WebSocketPeer, msg: Dictionary, raw: String) -> void:
 			return
 		members.append(ws)
 		_rooms[room] = members
-		_clients[ws] = {"room": room, "slot": members.size() - 1, "fighter": str(msg.get("fighter", "atlas")).left(32), "stage": str(msg.get("stage", "")).left(128)}
+		var def = msg.get("fighter_def", {})
+		_clients[ws] = {"room": room, "slot": members.size() - 1, "fighter": str(msg.get("fighter", "atlas")).left(32), "stage": str(msg.get("stage", "")).left(128), "def": def if def is Dictionary and JSON.stringify(def).length() < 2048 else {}}
 		if members.size() == 2:
 			_seed += 1
 			var picks := [str(_clients[members[0]].fighter), str(_clients[members[1]].fighter)]
 			var stage := str(_clients[members[0]].stage)
 			for slot in range(2):
-				_send(members[slot], {"op": "start", "player": slot, "seed": _seed, "fighters": picks, "stage": stage})
+				_send(members[slot], {"op": "start", "player": slot, "seed": _seed, "fighters": picks, "stage": stage, "defs": [_clients[members[0]].def, _clients[members[1]].def]})
 			log_line.emit("room %s started" % room)
 		else:
 			_send(ws, {"op": "waiting"})

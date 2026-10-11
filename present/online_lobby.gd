@@ -7,6 +7,7 @@ extends Control
 const WsClient = preload("res://net/ws_client.gd")
 const Battle = preload("res://present/battle_view.gd")
 const Loader = preload("res://content/character_loader.gd")
+const Builder = preload("res://meta/fighter_builder.gd")
 const DEFAULT_RELAY := "ws://localhost:9080"
 
 var client: RefCounted
@@ -96,6 +97,8 @@ func _connect() -> void:
 	client.waiting.connect(func(): _status.text = "Room %s is open. Waiting for your friend..." % _code.text.to_upper())
 	client.failed.connect(func(reason: String): _status.text = "Connection problem: %s" % reason)
 	client.started.connect(_on_started)
+	if not _fighters.is_empty():
+		client.fighter_def = shareable_def(_fighters[_pick])
 	var err: Error = client.connect_to(_url.text.strip_edges(), _code.text, str(_fighters[_pick].id) if not _fighters.is_empty() else "atlas", "res://assets/stages/kaplan-junction-arena.jpg")
 	_status.text = "Connecting..." if err == OK else "Invalid server address."
 
@@ -106,15 +109,63 @@ func _on_started(player: int, seed_value: int) -> void:
 	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
 
 
+## What a player's fighter looks like to the opponent: build data only. A model
+## that lives in this player's user:// folder cannot be sent, so the other side
+## shows the matching base body instead.
+static func shareable_def(def: Dictionary) -> Dictionary:
+	var out := {"id": str(def.get("id", "atlas")), "name": str(def.get("name", "FIGHTER")).left(16), "archetype": str(def.get("archetype", "all-rounder")),
+		"moveset": str(def.get("moveset", "universal")), "tint": def.get("tint", [1, 1, 1]), "custom": bool(def.get("custom", false))}
+	var model := str(def.get("model", ""))
+	out["model"] = model if model.begins_with("res://") else Builder.BASE_MODELS[0][1]
+	if def.has("points"): out["points"] = def.points
+	return out
+
+
+## A remote custom fighter is rebuilt from its points, so stats can never exceed the budget.
+static func sanitize_remote(def: Dictionary) -> Dictionary:
+	var points: Dictionary = def.get("points", {})
+	var power := int(points.get("power", 100))
+	var speed := int(points.get("speed", 100))
+	var defense := int(points.get("defense", 100))
+	if not Builder.is_valid_split(power, speed, defense):
+		power = 100
+		speed = 100
+		defense = 100
+	var arch_index := 0
+	for k in range(Builder.ARCHETYPES.size()):
+		if Builder.ARCHETYPES[k][1] == str(def.get("moveset", "universal")):
+			arch_index = k
+	var model := str(def.get("model", ""))
+	if not model.begins_with("res://") or not ResourceLoader.exists(model):
+		model = Builder.BASE_MODELS[0][1]
+	var tint_raw: Array = def.get("tint", [1, 1, 1])
+	var tint := Color(float(tint_raw[0]), float(tint_raw[1]), float(tint_raw[2])) if tint_raw.size() >= 3 else Color.WHITE
+	var rebuilt: Dictionary = Builder.build_def(str(def.get("name", "RIVAL")), arch_index, model, tint, power, speed, defense)
+	rebuilt["id"] = str(def.get("id", rebuilt.id))
+	return rebuilt
+
+
 ## Builds the battle selection from the relay's start message (slot order).
 static func online_selection(start: Dictionary, fighters: Array) -> Dictionary:
 	var picks: Array = start.get("fighters", ["atlas", "nova"])
+	var shared: Array = start.get("defs", [{}, {}])
 	var defs := []
-	for id in picks:
-		var found: Dictionary = fighters[0] if not fighters.is_empty() else {}
+	for slot in range(picks.size()):
+		var id := str(picks[slot])
+		var found: Dictionary = {}
 		for def in fighters:
-			if str(def.id) == str(id):
+			if str(def.id) == id and not bool(def.get("custom", false)):
 				found = def
+		var remote: Dictionary = shared[slot] if slot < shared.size() and shared[slot] is Dictionary else {}
+		if found.is_empty() and bool(remote.get("custom", false)):
+			found = sanitize_remote(remote)
+			# Our own custom fighter keeps its local avatar model; stats come from the
+			# same points on both machines, so the match stays identical.
+			for def in fighters:
+				if str(def.id) == id and bool(def.get("custom", false)) and def.get("points", {}) == remote.get("points", {}):
+					found["model"] = str(def.get("model", found.model))
+		if found.is_empty():
+			found = fighters[0] if not fighters.is_empty() else {}
 		defs.append(found)
 	var stage := str(start.get("stage", ""))
 	return {"p1": defs[0], "p2": defs[1], "stage": stage if stage != "" else "res://assets/stages/kaplan-junction-arena.jpg"}
