@@ -17,6 +17,8 @@ var _status: Label
 var _fighters: Array = []
 var _pick := 0
 var _pick_label: Label
+var _team_mode := false
+var _mode_button: Button
 
 
 func _ready() -> void:
@@ -53,6 +55,8 @@ func _ready() -> void:
 	pick_row.add_child(_pick_label)
 	pick_row.add_child(_button(">", func(): _cycle(1)))
 	_cycle(0)
+	_mode_button = _button("MODE: 1 VS 1", func(): _team_mode = not _team_mode; _mode_button.text = "MODE: 2 VS 2 (4 PLAYERS)" if _team_mode else "MODE: 1 VS 1")
+	box.add_child(_mode_button)
 	box.add_child(_text("ROOM CODE", 13))
 	_code = LineEdit.new()
 	_code.text = _random_code()
@@ -97,6 +101,7 @@ func _connect() -> void:
 	client.waiting.connect(func(): _status.text = "Room %s is open. Waiting for your friend..." % _code.text.to_upper())
 	client.failed.connect(func(reason: String): _status.text = "Connection problem: %s" % reason)
 	client.started.connect(_on_started)
+	client.room_size = 4 if _team_mode else 2
 	if not _fighters.is_empty():
 		client.fighter_def = shareable_def(_fighters[_pick])
 	var err: Error = client.connect_to(_url.text.strip_edges(), _code.text, str(_fighters[_pick].id) if not _fighters.is_empty() else "atlas", "res://assets/stages/kaplan-junction-arena.jpg")
@@ -168,7 +173,13 @@ static func online_selection(start: Dictionary, fighters: Array) -> Dictionary:
 			found = fighters[0] if not fighters.is_empty() else {}
 		defs.append(found)
 	var stage := str(start.get("stage", ""))
-	return {"p1": defs[0], "p2": defs[1], "stage": stage if stage != "" else "res://assets/stages/kaplan-junction-arena.jpg"}
+	var sel := {"p1": defs[0], "p2": defs[1], "stage": stage if stage != "" else "res://assets/stages/kaplan-junction-arena.jpg"}
+	if defs.size() >= 4:
+		# 2v2 slots: 0 and 2 are one team, 1 and 3 the other (sim order p1, p2, p1b, p2b).
+		sel["p1b"] = defs[2]
+		sel["p2b"] = defs[3]
+		sel["team"] = true
+	return sel
 
 
 func _cycle(step: int) -> void:

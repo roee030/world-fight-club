@@ -19,6 +19,7 @@ var _server := TCPServer.new()
 var _pending: Array[WebSocketPeer] = []
 var _clients: Dictionary = {}        # WebSocketPeer -> {"room": String, "slot": int}
 var _rooms: Dictionary = {}          # room -> Array[WebSocketPeer]
+var _room_size: Dictionary = {}      # room -> 2 or 4
 var _seed := 1000
 
 
@@ -74,19 +75,26 @@ func _handle(ws: WebSocketPeer, msg: Dictionary, raw: String) -> void:
 		if room.is_empty():
 			return
 		var members: Array = _rooms.get(room, [])
-		if members.size() >= 2:
+		# The first player sets the room size: 2 (1v1) or 4 (2v2).
+		var size: int = int(_room_size.get(room, 4 if int(msg.get("size", 2)) == 4 else 2))
+		if members.size() >= size:
 			_send(ws, {"op": "full"})
 			return
+		_room_size[room] = size
 		members.append(ws)
 		_rooms[room] = members
 		var def = msg.get("fighter_def", {})
 		_clients[ws] = {"room": room, "slot": members.size() - 1, "fighter": str(msg.get("fighter", "atlas")).left(32), "stage": str(msg.get("stage", "")).left(128), "def": def if def is Dictionary and JSON.stringify(def).length() < 2048 else {}}
-		if members.size() == 2:
+		if members.size() == size:
 			_seed += 1
-			var picks := [str(_clients[members[0]].fighter), str(_clients[members[1]].fighter)]
+			var picks := []
+			var defs := []
+			for member in members:
+				picks.append(str(_clients[member].fighter))
+				defs.append(_clients[member].def)
 			var stage := str(_clients[members[0]].stage)
-			for slot in range(2):
-				_send(members[slot], {"op": "start", "player": slot, "seed": _seed, "fighters": picks, "stage": stage, "defs": [_clients[members[0]].def, _clients[members[1]].def]})
+			for slot in range(size):
+				_send(members[slot], {"op": "start", "player": slot, "seed": _seed, "fighters": picks, "stage": stage, "defs": defs, "size": size})
 			log_line.emit("room %s started" % room)
 		else:
 			_send(ws, {"op": "waiting"})
@@ -109,6 +117,7 @@ func _drop(ws: WebSocketPeer) -> void:
 		_send(other, {"op": "left"})
 	if members.is_empty():
 		_rooms.erase(room)
+		_room_size.erase(room)
 	else:
 		_rooms[room] = members
 

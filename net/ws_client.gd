@@ -8,11 +8,13 @@ signal waiting
 signal opponent_left
 signal packet_received(packet: Dictionary)
 signal failed(reason: String)
-signal rematch_requested
+signal rematch_requested(player: int)
 
 var ws := WebSocketPeer.new()
 var room := ""
 var fighter := "atlas"
+var room_size := 2                  # 2 = 1v1, 4 = 2v2
+var slot := -1
 var fighter_def: Dictionary = {}    # sent so custom fighters exist on the other side too
 var stage := ""
 var last_start: Dictionary = {}     # the relay's start message (slots, seed, fighters, stage)
@@ -34,7 +36,7 @@ func poll() -> void:
 		_was_open = true
 		if not _joined:
 			_joined = true
-			ws.send_text(JSON.stringify({"op": "join", "room": room, "fighter": fighter, "stage": stage, "fighter_def": fighter_def}))
+			ws.send_text(JSON.stringify({"op": "join", "room": room, "fighter": fighter, "stage": stage, "fighter_def": fighter_def, "size": room_size}))
 		while ws.get_available_packet_count() > 0:
 			var msg = JSON.parse_string(ws.get_packet().get_string_from_utf8())
 			if not msg is Dictionary:
@@ -42,12 +44,13 @@ func poll() -> void:
 			match str(msg.get("op", "")):
 				"start":
 					last_start = msg
+					slot = int(msg.player)
 					started.emit(int(msg.player), int(msg.seed))
 				"waiting": waiting.emit()
 				"left": opponent_left.emit()
 				"full": failed.emit("room is full")
 				"input": packet_received.emit(_decode(msg))
-				"rematch": rematch_requested.emit()
+				"rematch": rematch_requested.emit(int(msg.get("player", -1)))
 	elif st == WebSocketPeer.STATE_CLOSED and _joined:
 		_joined = false
 		failed.emit("disconnected")
@@ -67,7 +70,7 @@ func send_packet(packet: Dictionary) -> void:
 
 func send_rematch() -> void:
 	if ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
-		ws.send_text(JSON.stringify({"op": "rematch"}))
+		ws.send_text(JSON.stringify({"op": "rematch", "player": slot}))
 
 
 func close() -> void:

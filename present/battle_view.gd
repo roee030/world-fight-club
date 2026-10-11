@@ -108,7 +108,8 @@ var _daily_events: Array = []
 var cpus: Array = []            # one CPU pilot per fighter (used for non-human slots)
 var _mini_bars: Array = []      # 2v2: partner health bars (fighters 2 and 3)
 var _rematch_local := false
-var _rematch_remote := false   # [kind, amount] collected during the match, applied at the end
+var _rematch_remote := false
+var _rematch_players: Dictionary = {}   # remote slots that asked for a rematch   # [kind, amount] collected during the match, applied at the end
 static var profile_path := Profile.PATH   # tests point this at a scratch file
 
 
@@ -132,7 +133,7 @@ func _ready() -> void:
 		local_slot = int(online.player)
 		online.client.packet_received.connect(func(packet: Dictionary): _inbox.append(packet))
 		online.client.opponent_left.connect(func(): _show_banner("OPPONENT LEFT", 600))
-		online.client.rematch_requested.connect(func(): _rematch_remote = true; _try_rematch())
+		online.client.rematch_requested.connect(func(player: int): _rematch_players[player] = true; _try_rematch())
 	var pause_layer := CanvasLayer.new()
 	pause_layer.layer = 5
 	add_child(pause_layer)
@@ -182,7 +183,7 @@ func _new_match() -> void:
 	_prev_winner = -1
 	_last_event_frame = 0
 	if not online.is_empty():
-		session = Session.new(moveset, state, local_slot, 2)
+		session = Session.new(moveset, state, local_slot, 2, state[L.H_FIGHTERS])
 		if _rematch_button != null: _rematch_button.visible = false
 	var arcade_info: Dictionary = selection.get("arcade", {})
 	if not arcade_info.is_empty():
@@ -419,10 +420,10 @@ func request_rematch() -> void:
 
 
 func _try_rematch() -> void:
-	if not (_rematch_local and _rematch_remote) or state[L.H_MATCH_OVER] == 0:
+	if not _rematch_local or _rematch_players.size() < state[L.H_FIGHTERS] - 1 or state[L.H_MATCH_OVER] == 0:
 		return
 	_rematch_local = false
-	_rematch_remote = false
+	_rematch_players.clear()
 	online.seed = int(online.seed) + 1
 	_inbox.clear()
 	_new_match()
