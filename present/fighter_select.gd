@@ -22,6 +22,9 @@ var _stage := 0
 var _labels := {}
 var _preview_views: Array = []
 var _viewports: Array[SubViewport] = []
+var _profile
+var _level_button: Button
+var _controls_button: Button
 
 
 func _ready() -> void:
@@ -87,10 +90,11 @@ func _ready() -> void:
 	row.anchor_right = 0.5
 	row.anchor_top = 0.8
 	row.anchor_bottom = 0.8
-	row.offset_left = -470
-	row.offset_right = 470
+	row.offset_left = -600
+	row.offset_right = 600
 	row.offset_bottom = 56
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 6)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(row)
 	row.add_child(_button("< YOU", func(): _cycle(0, -1)))
 	row.add_child(_button("YOU >", func(): _cycle(0, 1)))
@@ -99,6 +103,10 @@ func _ready() -> void:
 	row.add_child(_button("STAGE", func(): _stage = (_stage + 1) % STAGES.size(); _refresh()))
 	row.add_child(_button("FIGHT!", _start))
 	row.add_child(_button("ARCADE", _start_arcade))
+	_level_button = _button("", _cycle_level)
+	row.add_child(_level_button)
+	_controls_button = _button("", _toggle_controls)
+	row.add_child(_controls_button)
 	row.add_child(_button("BACK", func(): get_tree().change_scene_to_file("res://scenes/main.tscn")))
 	_labels["stage"] = _label("", 18, Vector2.ZERO, Vector2.ZERO)
 	_labels.stage.anchor_left = 0.0
@@ -107,7 +115,9 @@ func _ready() -> void:
 	_labels.stage.anchor_bottom = 0.9
 	_labels.stage.offset_bottom = 30
 	_labels.stage.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var profile = Profile.load_profile()
+	var profile = Profile.load_profile(Battle.profile_path)
+	_profile = profile
+	_update_setting_buttons()
 	var stats := _label("LEVEL %d  ·  %s  ·  %dW %dL  ·  BEST COMBO %d" % [profile.level(), profile.data.title, int(profile.data.wins), int(profile.data.losses), int(profile.data.best_combo)], 16, Vector2.ZERO, Vector2.ZERO)
 	stats.anchor_top = 0.94
 	stats.anchor_bottom = 0.94
@@ -115,6 +125,23 @@ func _ready() -> void:
 	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stats.add_theme_color_override("font_color", Color("#9fe8ff"))
 	_refresh()
+
+
+func _cycle_level() -> void:
+	_profile.set_setting("cpu_level", wrapi(int(_profile.setting("cpu_level", 2)) + 1, 1, 5))
+	_profile.save()
+	_update_setting_buttons()
+
+
+func _toggle_controls() -> void:
+	_profile.set_setting("easy_controls", not bool(_profile.setting("easy_controls", false)))
+	_profile.save()
+	_update_setting_buttons()
+
+
+func _update_setting_buttons() -> void:
+	_level_button.text = "CPU LV %d" % int(_profile.setting("cpu_level", 2))
+	_controls_button.text = "EASY" if bool(_profile.setting("easy_controls", false)) else "PRO"
 
 
 func _start_arcade() -> void:
@@ -167,6 +194,6 @@ func _label(text: String, size: int, _pos: Vector2, _anchor: Vector2) -> Label:
 func _button(title: String, action: Callable) -> Button:
 	var button := Button.new()
 	button.text = title
-	button.custom_minimum_size = Vector2(120, 52)
+	button.custom_minimum_size = Vector2(104, 52)
 	button.pressed.connect(action)
 	return button

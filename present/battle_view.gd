@@ -142,7 +142,10 @@ func _new_match() -> void:
 	replay.start(defs, seed_value, options)
 	_replaying = false
 	var arcade: Dictionary = selection.get("arcade", {})
-	cpu = CpuPilot.new(int(arcade.get("level", 2)), seed_value)
+	var settings_profile = Profile.load_profile(profile_path)
+	if not _direct_launch:
+		easy_controls = bool(settings_profile.setting("easy_controls", easy_controls)) or DisplayServer.is_touchscreen_available()
+	cpu = CpuPilot.new(int(arcade.get("level", settings_profile.setting("cpu_level", 2))), seed_value)
 	_damage_dealt = 0
 	_best_combo = 0
 	_rounds_lost = 0

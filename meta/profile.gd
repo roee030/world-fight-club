@@ -11,6 +11,7 @@ var path := PATH
 var data := {
 	"version": 1, "xp": 0, "wins": 0, "losses": 0, "matches": 0, "best_combo": 0,
 	"fighters": {}, "arcade_clears": [], "title": "ROOKIE",
+	"settings": {"cpu_level": 2, "easy_controls": false},
 }
 
 
@@ -31,6 +32,16 @@ func save() -> Error:
 		return FileAccess.get_open_error()
 	file.store_string(JSON.stringify(data))
 	return OK
+
+
+func setting(key: String, fallback):
+	return data.get("settings", {}).get(key, fallback)
+
+
+func set_setting(key: String, value) -> void:
+	var settings: Dictionary = data.get("settings", {})
+	settings[key] = value
+	data.settings = settings
 
 
 func level() -> int:
