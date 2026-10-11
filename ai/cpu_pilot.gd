@@ -84,6 +84,15 @@ func decide(s: PackedInt32Array, me: int, moveset) -> int:
 	if _cooldown > 0:
 		_cooldown -= 1
 		return toward if dist > 11500 else 0
+	if style == "zoner" and dist > 14000 and s[b + L.F_PROJECTILE_OUT] == 0 and rng.randf() < 0.055 * level:
+		_queue([L.IN_SP | (toward if rng.randf() < 0.35 else 0)], 1)   # Rapid Wave or Slow Orb
+		_cooldown = 18
+		return _plan.pop_front()
+	if style == "zoner" and dist < 9000 and rng.randf() < 0.04 * level:
+		_queue([away], 1)
+		_queue([0], 1)
+		_queue([away], 1)                  # back-dash to reset the distance
+		return _plan.pop_front()
 	if style == "universal" and dist > 20000 and s[b + L.F_PROJECTILE_OUT] == 0 and rng.randf() < 0.05 * level:
 		_queue([L.IN_SP], 1)
 		_cooldown = 30

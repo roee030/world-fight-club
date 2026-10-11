@@ -1,0 +1,11 @@
+{
+  "id": "vega",
+  "order": "4",
+  "name": "VEGA",
+  "archetype": "zoner",
+  "moveset": "zoner",
+  "model": "res://assets/characters/rigged/source/universal-base-characters/Base Characters/Superhero_Female_FullBody.gltf",
+  "tint": [0.8, 0.85, 1.15],
+  "scale": 1.04,
+  "stats": {"hp": 9200, "walk": 520}
+}

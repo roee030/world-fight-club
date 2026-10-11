@@ -88,6 +88,7 @@ var _callout: Label
 var _callout_time := 0
 var _zoom_punch := 0.0
 var _slowmo := 0.0
+var _beams: Array = []   # per fighter: MeshInstance3D or null
 var _touch_buttons: Dictionary = {}   # input bit -> button
 var _hint: Label
 var replay := Replay.new()
@@ -101,7 +102,7 @@ static var profile_path := Profile.PATH   # tests point this at a scratch file
 
 
 func _ready() -> void:
-	moveset = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json", "res://data/movesets/grappler.json"])
+	moveset = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json", "res://data/movesets/grappler.json", "res://data/movesets/zoner.json"])
 	selection = pending_selection
 	pending_selection = {}
 	_direct_launch = selection.is_empty()
@@ -404,6 +405,7 @@ func _process(delta: float) -> void:
 	_update_camera(delta)
 	_update_sparks(delta)
 	_update_projectiles()
+	_update_beams()
 	if training:
 		_overlay.draw_boxes(state, moveset)
 	_update_hud()
@@ -579,6 +581,58 @@ func _update_projectiles() -> void:
 				shell.scale = Vector3.ONE * (1.0 + 0.15 * sin(Time.get_ticks_msec() * 0.03))
 				# The tail trails behind the direction of travel.
 				(node.get_node("Tail") as Node3D).position.x = -signf(float(state[p + L.P_VX])) * 0.3
+
+
+func _update_beams() -> void:
+	# Moves tagged fx "beam" draw a glowing beam along their hitbox while active.
+	while _beams.size() < 2:
+		_beams.append(null)
+	for i in range(2):
+		var b := L.base(i)
+		var show := false
+		if state[b + L.F_STATE] == L.S_ATTACK and state[b + L.F_MOVE] >= 0:
+			var m: Dictionary = moveset.moves[state[b + L.F_MOVE]]
+			var sf := state[b + L.F_STATE_FRAME]
+			if str(m.get("fx", "")) == "beam" and sf >= int(m.startup) - 2 and sf < int(m.startup) + int(m.active):
+				show = true
+				if _beams[i] == null:
+					# Round beam: bright white core inside a coloured glow, lying along x.
+					var color := Color(0.5, 0.9, 1.0) if i == 0 else Color(1.0, 0.55, 0.3)
+					var beam := Node3D.new()
+					for layer in [[1.0, Color(1, 1, 1), 0.95], [2.2, color, 0.45]]:
+						var mesh := MeshInstance3D.new()
+						var cyl := CylinderMesh.new()
+						cyl.top_radius = 0.5
+						cyl.bottom_radius = 0.5
+						cyl.height = 1.0
+						mesh.mesh = cyl
+						mesh.material_override = Fx._glow(layer[1], layer[2])
+						mesh.rotation_degrees.z = 90.0
+						mesh.set_meta("radius_scale", layer[0])
+						beam.add_child(mesh)
+					var light := OmniLight3D.new()
+					light.light_color = color
+					light.light_energy = 3.0
+					light.omni_range = 5.0
+					beam.add_child(light)
+					add_child(beam)
+					_beams[i] = beam
+				var hb: PackedInt32Array = m.hitbox
+				var facing := state[b + L.F_FACING]
+				var cx := (state[b + L.F_X] + facing * (hb[0] + hb[2] / 2)) / 10000.0
+				var cy := (state[b + L.F_Y] + hb[1] + hb[3] / 2) / 10000.0
+				var node: Node3D = _beams[i]
+				node.position = Vector3(cx, cy, 0.2)
+				var pulse := 1.0 + 0.18 * sin(Time.get_ticks_msec() * 0.06)
+				var thickness := hb[3] / 10000.0 * 0.35 * pulse
+				for child in node.get_children():
+					if child is MeshInstance3D:
+						var r: float = child.get_meta("radius_scale")
+						# The cylinder is rotated onto x: its local y is the beam length.
+						child.scale = Vector3(thickness * r, hb[2] / 10000.0, thickness * r)
+		if not show and _beams[i] != null:
+			_beams[i].queue_free()
+			_beams[i] = null
 
 
 func _update_sparks(delta: float) -> void:

@@ -1,0 +1,170 @@
+{
+  "_doc": "Zoner archetype (VEGA): keeps the rival out. Faster-recovering Energy Wave, a slow Orb that controls space, long pokes and a full-screen Hyper Beam super. Inherits universal.",
+  "schema": 1,
+  "moveset": "zoner",
+  "inherits": "universal",
+  "moves": {
+    "5HP": {
+      "posture": "stand",
+      "button": "HP",
+      "anim": "cross",
+      "startup": 10,
+      "active": 4,
+      "recovery": 19,
+      "hitbox": [
+        3500,
+        12500,
+        11500,
+        3000
+      ],
+      "level": "mid",
+      "damage": 600,
+      "hitstun": 21,
+      "blockstun": 15,
+      "hitstop": 9,
+      "pushback": 420,
+      "cancel": {
+        "from": 10,
+        "to": 19,
+        "into": [
+          "5HK",
+          "SPECIAL",
+          "SUPER",
+          "RUSH"
+        ]
+      }
+    },
+    "236P": {
+      "type": "special",
+      "command": "236",
+      "button": "P",
+      "easy": "N",
+      "name": "Rapid Wave",
+      "anim": "cross",
+      "startup": 11,
+      "active": 1,
+      "recovery": 25,
+      "hitbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "projectile": {
+        "spawn": 11,
+        "vx": 800,
+        "life": 70,
+        "box": [
+          2000,
+          10500,
+          3600,
+          3000
+        ],
+        "y": 0
+      },
+      "level": "mid",
+      "damage": 420,
+      "hitstun": 19,
+      "blockstun": 16,
+      "hitstop": 7,
+      "pushback": 320,
+      "cancel": {
+        "from": 11,
+        "to": 16,
+        "into": [
+          "SUPER"
+        ]
+      }
+    },
+    "214P": {
+      "type": "special",
+      "command": "214",
+      "button": "P",
+      "easy": "F",
+      "name": "Slow Orb",
+      "anim": "cross",
+      "startup": 16,
+      "active": 1,
+      "recovery": 27,
+      "hitbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "projectile": {
+        "spawn": 16,
+        "vx": 280,
+        "life": 170,
+        "box": [
+          2000,
+          9000,
+          6000,
+          6000
+        ],
+        "y": 0
+      },
+      "level": "mid",
+      "damage": 540,
+      "hitstun": 24,
+      "blockstun": 18,
+      "hitstop": 9,
+      "pushback": 300
+    },
+    "SUPER": {
+      "type": "super",
+      "command": "236236",
+      "button": "P",
+      "easy": "SUPER",
+      "name": "Hyper Beam",
+      "anim": "cross",
+      "fx": "beam",
+      "startup": 10,
+      "active": 14,
+      "recovery": 34,
+      "hitbox": [
+        2000,
+        9500,
+        30000,
+        4500
+      ],
+      "invuln": [
+        1,
+        12
+      ],
+      "super_cost": 10000,
+      "super_freeze": 34,
+      "level": "mid",
+      "damage": 2200,
+      "min_damage_percent": 40,
+      "hitstun": 36,
+      "blockstun": 24,
+      "hitstop": 5,
+      "pushback": 700,
+      "launch": {
+        "vx": 400,
+        "vy": 1100
+      },
+      "hits": 6,
+      "hit_interval": 2
+    }
+  },
+  "auto_combo": {
+    "stand": [
+      "5LP",
+      "5HP",
+      "5HK",
+      "236P"
+    ],
+    "crouch": [
+      "2LP",
+      "2LK",
+      "2HP"
+    ],
+    "air": [
+      "j.LP",
+      "j.HP",
+      "j.HK"
+    ]
+  }
+}

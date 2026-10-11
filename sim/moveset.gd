@@ -179,6 +179,7 @@ func _add(name: String, raw: Dictionary) -> int:
 		"hits": maxi(1, int(raw.get("hits", 1))),
 		"hit_interval": maxi(1, int(raw.get("hit_interval", 3))),
 		"display_name": str(raw.get("name", name)),
+		"fx": str(raw.get("fx", "")),
 	}
 	# "startup" is the first active frame, so the move lasts startup + active - 1 + recovery frames.
 	move["total"] = int(move.startup) + int(move.active) - 1 + int(move.recovery)

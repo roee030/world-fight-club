@@ -8,11 +8,12 @@ const Sim = preload("res://sim/sim.gd")
 const L = preload("res://sim/layout.gd")
 const Moveset = preload("res://sim/moveset.gd")
 const CpuPilot = preload("res://ai/cpu_pilot.gd")
-const MATCHES := 16
+const MATCHES := 24
 const FIGHTERS := {
 	"universal": {"hp": 10000, "walk": 541},
 	"rushdown": {"hp": 9400, "walk": 590},
 	"grappler": {"hp": 11500, "walk": 470},
+	"zoner": {"hp": 9200, "walk": 520},
 }
 
 
@@ -26,7 +27,7 @@ func _fail(message: String) -> void:
 
 
 func _run() -> void:
-	var ms = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json", "res://data/movesets/grappler.json"])
+	var ms = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json", "res://data/movesets/grappler.json", "res://data/movesets/zoner.json"])
 	var names: Array = FIGHTERS.keys()
 	var report: Array[String] = []
 	for i in range(names.size()):

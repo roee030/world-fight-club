@@ -20,7 +20,7 @@ func _fail(message: String) -> void:
 
 
 func _run() -> void:
-	var ms = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json", "res://data/movesets/grappler.json"])
+	var ms = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json", "res://data/movesets/grappler.json", "res://data/movesets/zoner.json"])
 	var defs := [{"x": -16000, "archetype": "rushdown", "easy": true}, {"x": 16000, "archetype": "grappler", "hp": 11500}]
 	var options := {"intro": true, "rounds_to_win": 2}
 	var rec = Replay.new()
