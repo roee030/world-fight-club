@@ -8,7 +8,7 @@ extends RefCounted
 ## time-warp the clip and show the impact pose exactly on the first active frame.
 
 const SOURCES := ["res://assets/animations/quaternius/UAL1_Standard.glb", "res://assets/animations/quaternius/UAL2_Standard.glb"]
-const LOOPING := ["Idle", "Walk", "Crouch_Idle", "Crouch_Fwd", "Jump", "Jog_Fwd", "Sprint", "Idle_Shield", "NinjaJump_Idle"]
+const LOOPING := ["Idle", "Walk", "Crouch_Idle", "Crouch_Fwd", "Jump", "Jog_Fwd", "Sprint", "Idle_Shield", "NinjaJump_Idle", "Idle_FoldArms", "Dance", "Yes"]
 const STRIKES := {"Punch_Jab": ["hand_l", "hand_r"], "Punch_Cross": ["hand_l", "hand_r"], "Melee_Hook": ["hand_l", "hand_r"]}
 
 static var _library: AnimationLibrary

@@ -108,9 +108,11 @@ func _play(clip: String, speed: float = 1.0) -> void:
 
 
 func _sample(clip: String, t: float) -> void:
+	# Frame-sampled poses switch without a cross-fade: a blend cannot advance
+	# while the playback speed is 0, so it would freeze on the previous clip.
 	if _clip != clip:
 		_clip = clip
-		player.play(clip, 0.05)
+		player.play(clip, 0.0)
 	player.speed_scale = 0.0
 	player.seek(t, true)
 
@@ -136,6 +138,19 @@ func show_state(s: PackedInt32Array, i: int, moveset) -> void:
 	var arm_l := 0.0
 	var arm_r := 0.0
 	var guard := true
+	# Round intro: confident arms-folded pose until the last half second.
+	var intro := s[L.H_INTRO]
+	var winner := s[L.H_WINNER]
+	var won := winner >= 0 and winner == s[b + L.F_TEAM] and state in [L.S_IDLE, L.S_WALK_F, L.S_WALK_B, L.S_CROUCH]
+	if intro > 30 and state == L.S_IDLE:
+		_play("Idle_FoldArms")
+		guard = false
+		state = -1
+	elif won and s[L.H_END_TIMER] > 40:
+		# Victory celebration once the KO has landed.
+		_play("Dance" if s[L.H_MATCH_OVER] != 0 else "Yes")
+		guard = false
+		state = -1
 	match state:
 		L.S_IDLE:
 			_play("Idle")
