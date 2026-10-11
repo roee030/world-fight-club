@@ -165,6 +165,8 @@ func _add(name: String, raw: Dictionary) -> int:
 		"motion_from": int(raw.get("motion", {}).get("from", 0)),
 		"motion_to": int(raw.get("motion", {}).get("to", -1)),
 		"motion_vx": int(raw.get("motion", {}).get("vx", 0)),
+		"motion_vy": int(raw.get("motion", {}).get("vy", 0)),
+		"air_motion": raw.get("motion", {}).has("vy"),
 		"projectile": not raw.get("projectile", {}).is_empty(),
 		"proj_spawn": int(raw.get("projectile", {}).get("spawn", 0)),
 		"proj_vx": int(raw.get("projectile", {}).get("vx", 0)),

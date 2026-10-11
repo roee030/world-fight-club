@@ -78,7 +78,8 @@ static func move_list_text(moveset, archetype: int, fighter_name: String) -> Str
 		var m: Dictionary = moveset.moves[move]
 		var button := "punch" if str(m.button_class) == "P" else "kick"
 		var pro := "%s + %s" % [COMMAND_LABEL.get(str(m.command), str(m.command)), button]
-		lines.append("  %-22s %-44s %s" % [str(m.display_name).to_upper(), pro, EASY_LABEL.get(str(m.easy), "-")])
+		var air := "  (in the air)" if int(m.posture) == 2 else ""
+		lines.append("  %-22s %-44s %s" % [str(m.display_name).to_upper() + air, pro, EASY_LABEL.get(str(m.easy), "-")])
 	lines.append("")
 	lines.append("SYSTEM")
 	lines.append("  THROW                  light punch + light kick (tech: same, when grabbed)")

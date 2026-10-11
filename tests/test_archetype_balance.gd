@@ -11,7 +11,7 @@ const CpuPilot = preload("res://ai/cpu_pilot.gd")
 const MATCHES := 24
 const FIGHTERS := {
 	"universal": {"hp": 10000, "walk": 541},
-	"rushdown": {"hp": 9400, "walk": 590},
+	"rushdown": {"hp": 9800, "walk": 590},
 	"grappler": {"hp": 11500, "walk": 470},
 	"zoner": {"hp": 9200, "walk": 520},
 }

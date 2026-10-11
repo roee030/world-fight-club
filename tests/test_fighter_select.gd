@@ -37,7 +37,7 @@ func _run() -> void:
 	for f in range(5): await physics_frame
 	if battle.selection.p1.id != "nova":
 		return _fail("battle must use the selected fighter")
-	if battle.state[L.base(0) + L.F_HP_MAX] != 9400:
+	if battle.state[L.base(0) + L.F_HP_MAX] != 9800:
 		return _fail("fighter stats from data must reach the sim (hp %d)" % battle.state[L.base(0) + L.F_HP_MAX])
 	battle.free()
 	print("PASS: fighter select hands fighters, stats and stage to the battle")

@@ -26,7 +26,7 @@ func _fail(message: String) -> void:
 
 func _run() -> void:
 	ms = Moveset.compile(["res://data/movesets/universal.json"])
-	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo, _round_flow, _archetypes, _command_grab, _multi_hit_and_punish]:
+	for check in [_pro_special_projectile, _easy_specials, _reversal_invuln, _super, _parry, _rush, _impact_armor, _burnout, _throw_and_tech, _wall_splat, _special_cancel, _easy_auto_combo, _round_flow, _archetypes, _command_grab, _multi_hit_and_punish, _air_specials]:
 		var error: String = check.call()
 		if error != "":
 			return _fail(error)
@@ -289,3 +289,46 @@ func _multi_hit_and_punish() -> String:
 		if kinds3[k] == L.EV_COUNTER and kinds3[k + 1] == 0: punished = true
 	if not punished: return "a jab into the heavy kick's recovery must be a punish counter"
 	return ""
+
+
+func _air_specials() -> String:
+	var all = Moveset.compile(["res://data/movesets/universal.json", "res://data/movesets/rushdown.json", "res://data/movesets/grappler.json", "res://data/movesets/zoner.json"])
+	# Rushdown: jump, then SP + forward in the air = Dive Kick that lands a hit.
+	var s := Sim.new_match(all, [{"x": -12000, "archetype": "rushdown"}, {"x": 4000}], 3)
+	var kinds: Array[int] = []
+	var dive := int(all._names[all.arch_index("rushdown")]["j.214K"])
+	for f in range(1, 70):
+		var input := 0
+		if f <= 2: input = L.IN_UP | R
+		elif f == 14: input = L.IN_SP | R
+		var events := Sim.step(all, s, PackedInt32Array([input, 0]))
+		for e in range(0, events.size(), L.EVENT_SIZE):
+			kinds.append(events[e]); kinds.append(events[e + 1]); kinds.append(events[e + 2])
+	if not _has(kinds, L.EV_SPECIAL, 0, dive): return "SP + forward in the air must start the Dive Kick"
+	if not _has(kinds, L.EV_HIT, 0, dive): return "the Dive Kick must hit a standing rival"
+	# The same input on the ground is still the ground special.
+	var g := Sim.new_match(all, [{"x": -12000, "archetype": "rushdown"}, {"x": 12000}], 3)
+	var gk := _play_with(all, g, 4, {1: L.IN_SP | R})
+	if _has(gk, L.EV_SPECIAL, 0, dive): return "the Dive Kick must not start from the ground"
+	# Zoner: Air Wave spawns a projectile above the floor.
+	var z := Sim.new_match(all, [{"x": -12000, "archetype": "zoner"}, {"x": 12000}], 3)
+	var spawned_high := false
+	for f in range(1, 40):
+		var input := 0
+		if f <= 2: input = L.IN_UP
+		elif f == 12: input = L.IN_SP
+		Sim.step(all, z, PackedInt32Array([input, 0]))
+		for slot in range(L.PROJECTILES):
+			var p := L.projectile_base(z, slot)
+			if z[p + L.P_ACTIVE] != 0 and z[p + L.P_Y] > 3000: spawned_high = true
+	if not spawned_high: return "the zoner's Air Wave must fire from the air"
+	return ""
+
+
+func _play_with(set, s: PackedInt32Array, frames: int, p0: Dictionary) -> Array[int]:
+	var kinds: Array[int] = []
+	for f in range(1, frames + 1):
+		var events := Sim.step(set, s, PackedInt32Array([int(p0.get(f, 0)), 0]))
+		for e in range(0, events.size(), L.EVENT_SIZE):
+			kinds.append(events[e]); kinds.append(events[e + 1]); kinds.append(events[e + 2])
+	return kinds

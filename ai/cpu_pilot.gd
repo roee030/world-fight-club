@@ -77,6 +77,12 @@ func decide(s: PackedInt32Array, me: int, moveset) -> int:
 		_queue([L.IN_SP | toward], 1)   # Iron Hug: beats a turtling rival
 		_cooldown = 30
 		return _plan.pop_front()
+	if style == "rushdown" and dist > 12000 and dist < 20000 and rng.randf() < 0.015 * level:
+		_queue([L.IN_UP | toward], 2)     # jump in, then Dive Kick
+		_queue([0], 9)
+		_queue([L.IN_SP | toward], 1)
+		_cooldown = 30
+		return _plan.pop_front()
 	if style == "rushdown" and dist > 13000 and dist < 22000 and rng.randf() < 0.035 * level:
 		_queue([L.IN_SP], 1)            # Lightning Dash closes the gap
 		_cooldown = 24

@@ -184,6 +184,7 @@ static func _motion(s: PackedInt32Array, b: int, seq: String, window: int) -> bo
 
 static func _read_commands(moveset, r: Dictionary, s: PackedInt32Array, b: int, inp: int, pressed: int) -> void:
 	var arch := s[b + L.F_ARCHETYPE]
+	var in_air := s[b + L.F_Y] > 0 or s[b + L.F_STATE] in [L.S_AIR, L.S_PREJUMP]
 	# Throw: both light buttons together.
 	if (pressed & (L.IN_LP | L.IN_LK)) != 0 and (inp & L.IN_LP) != 0 and (inp & L.IN_LK) != 0:
 		_buffer_special(r, s, b, moveset.named_for(arch, "THROW"))
@@ -201,7 +202,7 @@ static func _read_commands(moveset, r: Dictionary, s: PackedInt32Array, b: int, 
 		elif _h(inp, facing) > 0: code = "F"
 		elif _h(inp, facing) < 0: code = "B"
 		for move in moveset.specials_for(arch):
-			if str(moveset.moves[move].easy) == code:
+			if str(moveset.moves[move].easy) == code and (int(moveset.moves[move].posture) == 2) == in_air:
 				_buffer_special(r, s, b, move)
 				s[b + L.F_FLAGS] = s[b + L.F_FLAGS] | L.FLAG_ASSISTED
 				return
@@ -214,6 +215,8 @@ static func _read_commands(moveset, r: Dictionary, s: PackedInt32Array, b: int, 
 	var windows: Dictionary = r.command_window
 	for move in moveset.specials_for(arch):
 		var m: Dictionary = moveset.moves[move]
+		if (int(m.posture) == 2) != in_air:
+			continue
 		var cls := str(m.button_class)
 		if (cls == "P" and not punch) or (cls == "K" and not kick):
 			continue
@@ -333,13 +336,18 @@ static func _step_fighter(moveset, r: Dictionary, s: PackedInt32Array, i: int, i
 				_launch_jump(r, s, b, (s[b + L.F_FLAGS] & 3) - 1, int(r.jump.vy))
 		L.S_AIR:
 			_gravity(r, s, b)
-			if s[b + L.F_BUFFER_MOVE] >= 0:
+			if s[b + L.F_SPECIAL_BUFFER] >= 0 and int(moveset.moves[s[b + L.F_SPECIAL_BUFFER]].posture) == 2:
+				_start_special(moveset, r, s, b, i, events)
+			elif s[b + L.F_BUFFER_MOVE] >= 0:
 				_start_attack(moveset, s, b, 2, events, i)
 		L.S_ATTACK:
 			var move := s[b + L.F_MOVE]
 			var m: Dictionary = moveset.moves[move]
 			var airborne := int(m.posture) == 2
-			if airborne:
+			if airborne and bool(m.air_motion) and sf >= int(m.motion_from) and sf <= int(m.motion_to):
+				s[b + L.F_VX] = facing * int(m.motion_vx)
+				s[b + L.F_VY] = int(m.motion_vy)
+			elif airborne:
 				_gravity(r, s, b)
 			elif sf >= int(m.motion_from) and sf <= int(m.motion_to):
 				s[b + L.F_VX] = facing * int(m.motion_vx)
@@ -518,13 +526,17 @@ static func _start_special(moveset, r: Dictionary, s: PackedInt32Array, b: int, 
 		return false
 	var m: Dictionary = moveset.moves[move]
 	var kind := int(m.type)
+	var airborne_move := int(m.posture) == 2
+	if airborne_move != (s[b + L.F_Y] > 0):
+		return false
 	if kind == T_SUPER and s[b + L.F_SUPER] < int(m.super_cost):
 		return false
 	if kind == T_DRIVE and (s[b + L.F_BURNOUT] != 0 or s[b + L.F_DRIVE] < int(m.drive_cost)):
 		return false
 	s[b + L.F_SPECIAL_BUFFER] = -1
 	s[b + L.F_SPECIAL_FRAMES] = 0
-	_face_target(s, i)
+	if not airborne_move:
+		_face_target(s, i)
 	if kind == T_SUPER:
 		s[b + L.F_SUPER] -= int(m.super_cost)
 		var freeze := int(m.super_freeze)
@@ -535,7 +547,7 @@ static func _start_special(moveset, r: Dictionary, s: PackedInt32Array, b: int, 
 	elif kind == T_DRIVE:
 		s[b + L.F_DRIVE] -= int(m.drive_cost)
 		if s[b + L.F_DRIVE] <= 0: _burnout(s, b, events, i)
-	_begin_move(s, b, move, false, moveset)
+	_begin_move(s, b, move, airborne_move, moveset)
 	if kind == T_THROW or bool(m.command_grab):
 		_enter(s, b, L.S_THROW)
 	_emit(events, L.EV_SPECIAL if kind != T_THROW else L.EV_ATTACK, i, move, 0)

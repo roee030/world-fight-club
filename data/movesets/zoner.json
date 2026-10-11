@@ -147,6 +147,42 @@
       },
       "hits": 6,
       "hit_interval": 2
+    },
+    "j.236P": {
+      "type": "special",
+      "posture": "air",
+      "command": "236",
+      "button": "P",
+      "easy": "N",
+      "name": "Air Wave",
+      "anim": "cross",
+      "startup": 8,
+      "active": 1,
+      "recovery": 18,
+      "hitbox": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "projectile": {
+        "spawn": 8,
+        "vx": 700,
+        "life": 60,
+        "box": [
+          2000,
+          6000,
+          3600,
+          3000
+        ],
+        "y": 0
+      },
+      "level": "high",
+      "damage": 420,
+      "hitstun": 18,
+      "blockstun": 14,
+      "hitstop": 7,
+      "pushback": 300
     }
   },
   "auto_combo": {

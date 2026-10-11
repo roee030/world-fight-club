@@ -222,6 +222,36 @@
       ],
       "hits": 6,
       "hit_interval": 2
+    },
+    "j.214K": {
+      "type": "special",
+      "posture": "air",
+      "command": "214",
+      "button": "K",
+      "easy": "F",
+      "name": "Dive Kick",
+      "anim": "kick",
+      "startup": 5,
+      "active": 30,
+      "recovery": 4,
+      "hitbox": [
+        1500,
+        0,
+        6500,
+        5000
+      ],
+      "motion": {
+        "from": 1,
+        "to": 40,
+        "vx": 900,
+        "vy": -1100
+      },
+      "level": "overhead",
+      "damage": 550,
+      "hitstun": 18,
+      "blockstun": 12,
+      "hitstop": 8,
+      "pushback": 300
     }
   },
   "auto_combo": {
