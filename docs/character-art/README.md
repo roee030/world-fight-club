@@ -65,3 +65,22 @@ alpha channel. Check for green fringes on dark hair and sleeves.
 
 - `prompts.md`: ready-to-paste prompts, negative prompts and tool settings.
 - `personal-fighter-flow.md`: what we do with a real user's selfie, what we tell them, consent and safety rules.
+
+## NEW (3D engine): make your own 3D fighter today, no code
+
+The 3D engine no longer needs 12 drawn poses: any rigged humanoid 3D model gets the whole
+animation library automatically (retargeting in `content/`).
+
+1. Create a free avatar from a selfie: **Avaturn** (avaturn.me) or **Avatar SDK MetaPerson
+   Creator** (avatarsdk.com/metaperson-creator). Choose a full-body avatar and export / download
+   it as **GLB**.
+2. In the game: **3D ENGINE · BETA -> CREATE -> IMPORT MY 3D AVATAR (.GLB)**. The game checks the
+   skeleton (Mixamo / Avaturn / MetaPerson bone names are mapped automatically) and shows a live
+   preview. A file without a humanoid skeleton is rejected with the missing bones listed.
+3. Name it, choose a colour and a fighting style (all-rounder, rushdown, grappler, zoner), split
+   the 300 points between POWER / SPEED / DEFENSE, **SAVE**. It now appears on fighter select.
+
+Files stay on your device (`user://fighters`, `user://avatars`); nothing is uploaded. Online, the
+opponent sees your build (style + points) on a base body, because your model file stays private.
+Tips: keep the avatar under ~40k triangles with 2K textures for phones; clothing must be part of
+the skinned mesh (no separate rigid props).
