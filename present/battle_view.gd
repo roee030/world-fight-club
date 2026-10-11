@@ -148,8 +148,8 @@ func _new_match() -> void:
 	var stats0: Dictionary = selection.get("p1", {}).get("stats", {})
 	var stats1: Dictionary = selection.get("p2", {}).get("stats", {})
 	var defs := [
-		{"x": -16000, "hp": int(stats0.get("hp", 10000)), "walk": int(stats0.get("walk", 541)), "easy": easy_controls or not online.is_empty(), "archetype": str(selection.get("p1", {}).get("moveset", "universal"))},
-		{"x": 16000, "hp": int(stats1.get("hp", 10000)), "walk": int(stats1.get("walk", 541)), "easy": true, "archetype": str(selection.get("p2", {}).get("moveset", "universal"))}]
+		{"x": -16000, "hp": int(stats0.get("hp", 10000)), "walk": int(stats0.get("walk", 541)), "power": int(stats0.get("power", 100)), "easy": easy_controls or not online.is_empty(), "archetype": str(selection.get("p1", {}).get("moveset", "universal"))},
+		{"x": 16000, "hp": int(stats1.get("hp", 10000)), "walk": int(stats1.get("walk", 541)), "power": int(stats1.get("power", 100)), "easy": true, "archetype": str(selection.get("p2", {}).get("moveset", "universal"))}]
 	var options := {"intro": true, "rounds_to_win": 2}
 	state = Sim.new_match(moveset, defs, seed_value, options)
 	replay.start(defs, seed_value, options)

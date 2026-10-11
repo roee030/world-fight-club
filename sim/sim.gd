@@ -55,6 +55,7 @@ static func new_match(moveset, fighters: Array, rng_seed: int = 1, options: Dict
 		s[b + L.F_SUPER] = int(def.get("super", 0))
 		if bool(def.get("easy", false)): s[b + L.F_FLAGS] = s[b + L.F_FLAGS] | L.FLAG_EASY
 		s[b + L.F_ARCHETYPE] = moveset.arch_index(str(def.get("archetype", "universal")))
+		s[b + L.F_POWER] = clampi(int(def.get("power", 100)), 80, 120)
 		s[b + L.F_STATE] = L.S_IDLE
 		s[b + L.F_STATE_FRAME] = 1
 		for k in range(L.HIST_LEN):
@@ -120,7 +121,7 @@ static func _round_flow(moveset, r: Dictionary, s: PackedInt32Array, count: int,
 	for i in range(count):
 		var b := L.base(i)
 		var keep_super := s[b + L.F_SUPER]
-		var keep := [s[b + L.F_START_X], s[b + L.F_HP_MAX], s[b + L.F_WALK], s[b + L.F_TEAM], s[b + L.F_TARGET], s[b + L.F_FLAGS] & L.FLAG_EASY, s[b + L.F_PREV_INPUT], s[b + L.F_ARCHETYPE]]
+		var keep := [s[b + L.F_START_X], s[b + L.F_HP_MAX], s[b + L.F_WALK], s[b + L.F_TEAM], s[b + L.F_TARGET], s[b + L.F_FLAGS] & L.FLAG_EASY, s[b + L.F_PREV_INPUT], s[b + L.F_ARCHETYPE], s[b + L.F_POWER]]
 		for k in range(L.FIGHTER):
 			s[b + k] = 0
 		s[b + L.F_START_X] = keep[0]
@@ -133,6 +134,7 @@ static func _round_flow(moveset, r: Dictionary, s: PackedInt32Array, count: int,
 		s[b + L.F_FLAGS] = keep[5]
 		s[b + L.F_PREV_INPUT] = keep[6]
 		s[b + L.F_ARCHETYPE] = keep[7]
+		s[b + L.F_POWER] = keep[8]
 		s[b + L.F_SUPER] = keep_super
 		s[b + L.F_MOVE] = -1
 		s[b + L.F_BUFFER_MOVE] = -1
@@ -673,7 +675,7 @@ static func _finish_throw(moveset, r: Dictionary, s: PackedInt32Array, thrower: 
 	var m: Dictionary = moveset.moves[move] if move >= 0 else moveset.moves[moveset.named_for(s[b + L.F_ARCHETYPE], "THROW")]
 	var scaling: Array = r.scaling
 	var scale := maxi(int(r.scaling_min), int(scaling[mini(s[tb + L.F_HITS_TAKEN], scaling.size() - 1)]))
-	var damage := maxi(int(m.damage) * scale / 100, int(m.damage) * int(m.min_damage_percent) / 100)
+	var damage := maxi(int(m.damage) * scale / 100, int(m.damage) * int(m.min_damage_percent) / 100) * s[b + L.F_POWER] / 100
 	s[tb + L.F_HP] = maxi(0, s[tb + L.F_HP] - damage)
 	s[tb + L.F_HITS_TAKEN] += 1
 	s[b + L.F_COMBO] = s[tb + L.F_HITS_TAKEN]
@@ -954,6 +956,7 @@ static func _apply_hit(moveset, r: Dictionary, s: PackedInt32Array, a: int, d: i
 		s[bd + L.F_DRIVE] = maxi(0, s[bd + L.F_DRIVE] - int(r.punish_counter.drive_drain))
 	if (s[ba + L.F_FLAGS] & L.FLAG_ASSISTED) != 0 and not projectile:
 		damage = damage * int(r.assist_damage_percent) / 100
+	damage = damage * s[ba + L.F_POWER] / 100
 	damage = maxi(1, damage)
 	s[bd + L.F_HP] = maxi(0, s[bd + L.F_HP] - damage)
 	s[bd + L.F_HITS_TAKEN] = taken + 1

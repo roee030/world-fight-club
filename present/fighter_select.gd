@@ -103,6 +103,7 @@ func _ready() -> void:
 	row.add_child(_button("STAGE", func(): _stage = (_stage + 1) % STAGES.size(); _refresh()))
 	row.add_child(_button("FIGHT!", _start))
 	row.add_child(_button("ARCADE", _start_arcade))
+	row.add_child(_button("CREATE", func(): get_tree().change_scene_to_file("res://scenes/battle/creator.tscn")))
 	_level_button = _button("", _cycle_level)
 	row.add_child(_level_button)
 	_controls_button = _button("", _toggle_controls)
