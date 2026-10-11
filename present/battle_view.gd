@@ -185,8 +185,11 @@ func _build_world() -> void:
 	e.background_mode = Environment.BG_COLOR
 	e.background_color = Color(0.05, 0.06, 0.09)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(0.55, 0.58, 0.68)
-	e.ambient_light_energy = 0.55
+	# Ambient and rim light pick up the stage photo's dominant colour, so the
+	# fighters look lit by the place they stand in.
+	var stage_tint := stage_color(str(selection.get("stage", STAGE_ART)))
+	e.ambient_light_color = Color(0.55, 0.58, 0.68).lerp(stage_tint, 0.45)
+	e.ambient_light_energy = 0.6
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	e.glow_enabled = true
 	env.environment = e
@@ -200,12 +203,12 @@ func _build_world() -> void:
 	var rim := DirectionalLight3D.new()
 	rim.rotation_degrees = Vector3(-20, 150, 0)
 	rim.light_energy = 0.7
-	rim.light_color = Color(0.55, 0.75, 1.0)
+	rim.light_color = Color(0.55, 0.75, 1.0).lerp(stage_tint.lightened(0.3), 0.5)
 	add_child(rim)
 	# Backdrop: the stage art on a large card behind the fighting plane.
 	var backdrop := MeshInstance3D.new()
 	var quad := QuadMesh.new()
-	quad.size = Vector2(34.0, 19.1)
+	quad.size = Vector2(48.0, 27.0)
 	backdrop.mesh = quad
 	var bmat := StandardMaterial3D.new()
 	bmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -254,6 +257,27 @@ func _build_world() -> void:
 		view.rig_root.scale = Vector3.ONE * float(def.get("scale", 1.0))
 		views.append(view)
 		if i == 0 and not def.is_empty(): player_name = str(def.get("name", "YOU"))
+
+
+## Average colour of the stage art (sampled small), used to tint the lighting.
+static func stage_color(path: String) -> Color:
+	var texture := load(path) as Texture2D
+	if texture == null:
+		return Color(0.6, 0.6, 0.65)
+	var image := texture.get_image()
+	if image == null or image.is_empty():
+		return Color(0.6, 0.6, 0.65)
+	if image.is_compressed():
+		image = image.duplicate()
+		image.decompress()
+	image = image.duplicate()
+	image.resize(8, 8, Image.INTERPOLATE_BILINEAR)
+	var sum := Color(0, 0, 0)
+	for y in range(8):
+		for x in range(8):
+			sum += image.get_pixel(x, y)
+	sum = sum / 64.0
+	return Color(sum.r, sum.g, sum.b).lightened(0.15)
 
 
 func _physics_process(_delta: float) -> void:
@@ -708,8 +732,9 @@ func _update_camera(delta: float) -> void:
 		var fb := L.base(_cine_fighter)
 		var fx := state[fb + L.F_X] / 10000.0
 		var ff := state[fb + L.F_FACING]
-		target = Vector3(fx + ff * 1.6, 1.45, 2.4)
-		look = Vector3(fx, 1.25, 0)
+		# Over-the-shoulder shot: behind the attacker, looking at the victim.
+		target = Vector3(fx - ff * 0.55, 1.5, 2.9)
+		look = Vector3(fx + ff * 0.9, 1.2, 0)
 		camera.position = camera.position.lerp(target, minf(1.0, delta * 10.0))
 		camera.look_at(look, Vector3.UP)
 		_dim.color.a = lerpf(_dim.color.a, 0.45, minf(1.0, delta * 12.0))

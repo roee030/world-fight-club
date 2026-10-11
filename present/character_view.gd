@@ -33,7 +33,8 @@ var _guard := 0.0
 var _shake_phase := 0
 var _flash_mat: StandardMaterial3D
 var _flash := 0.0
-var _scale := 1.0   # model head height / reference male head height, for IK targets
+var _scale := 1.0
+var _shadow: MeshInstance3D   # model head height / reference male head height, for IK targets
 
 
 func setup(path: String = DEFAULT_MODEL, tint: Color = Color.WHITE) -> void:
@@ -72,6 +73,19 @@ func setup(path: String = DEFAULT_MODEL, tint: Color = Color.WHITE) -> void:
 	_leg_ik = _make_ik("thigh_r", "calf_r", "foot_r", "leg", Vector3(-0.15, 0.6, 1.6))
 	_arm_l_ik = _make_ik("upperarm_l", "lowerarm_l", "hand_l", "hand_l", Vector3(0.6, 0.9, -0.4))
 	_arm_r_ik = _make_ik("upperarm_r", "lowerarm_r", "hand_r", "hand_r", Vector3(-0.6, 0.9, -0.4))
+	_shadow = MeshInstance3D.new()
+	var disc := CylinderMesh.new()
+	disc.top_radius = 0.42
+	disc.bottom_radius = 0.42
+	disc.height = 0.004
+	disc.radial_segments = 24
+	_shadow.mesh = disc
+	var shadow_mat := StandardMaterial3D.new()
+	shadow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	shadow_mat.albedo_color = Color(0, 0, 0, 0.5)
+	shadow_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_shadow.material_override = shadow_mat
+	add_child(_shadow)
 	_play("Idle")
 
 
@@ -133,6 +147,15 @@ func show_state(s: PackedInt32Array, i: int, moveset) -> void:
 	var sf := s[b + L.F_STATE_FRAME]
 	var facing := s[b + L.F_FACING]
 	position = Vector3(s[b + L.F_X] * UNIT, s[b + L.F_Y] * UNIT, 0.0)
+	if _shadow != null:
+		# The shadow stays on the floor and shrinks / fades with height.
+		var height := position.y
+		_shadow.position.y = 0.006 - height
+		var k := clampf(1.0 - height / 2.2, 0.35, 1.0)
+		_shadow.scale = Vector3(k * 1.15, 1.0, k * 0.75)
+		(_shadow.material_override as StandardMaterial3D).albedo_color.a = 0.5 * k
+		if state == L.S_KNOCKDOWN or state == L.S_KO:
+			_shadow.scale.x *= 2.0
 	rig_root.rotation_degrees.y = 90.0 * facing
 	var leg := 0.0
 	var arm_l := 0.0
