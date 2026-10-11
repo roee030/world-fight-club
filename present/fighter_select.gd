@@ -8,6 +8,7 @@ const CharacterView = preload("res://present/character_view.gd")
 const Battle = preload("res://present/battle_view.gd")
 const PrivateRoster = preload("res://scripts/private_roster.gd")
 const Profile = preload("res://meta/profile.gd")
+const Challenges = preload("res://meta/challenges.gd")
 const STAGES := [
 	{"name": "UNDERPASS", "art": "res://assets/stages/kaplan-junction-arena.jpg"},
 	{"name": "NEWSROOM", "art": "res://assets/stages/hatzinor-studio-arena.png"},
@@ -125,6 +126,13 @@ func _ready() -> void:
 	stats.offset_bottom = 28
 	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stats.add_theme_color_override("font_color", Color("#9fe8ff"))
+	var daily := _label(Challenges.describe(profile), 16, Vector2.ZERO, Vector2.ZERO)
+	daily.anchor_top = 0.075
+	daily.anchor_bottom = 0.075
+	daily.offset_bottom = 26
+	daily.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	daily.add_theme_color_override("font_color", Color("#ffd75a"))
+	profile.save()
 	_refresh()
 
 

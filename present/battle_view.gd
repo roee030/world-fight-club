@@ -21,6 +21,7 @@ const SlantBar = preload("res://scripts/hud/slant_bar.gd")
 const Replay = preload("res://sim/replay.gd")
 const Profile = preload("res://meta/profile.gd")
 const PauseMenu = preload("res://present/pause_menu.gd")
+const Challenges = preload("res://meta/challenges.gd")
 const DeviceInput = preload("res://input/device_input.gd")
 const LAST_REPLAY := "user://replays/last.json"
 const Session = preload("res://net/rollback_session.gd")
@@ -102,6 +103,7 @@ var _damage_dealt := 0
 var _best_combo := 0
 var _rounds_lost := 0
 var _progress_recorded := false
+var _daily_events: Array = []   # [kind, amount] collected during the match, applied at the end
 static var profile_path := Profile.PATH   # tests point this at a scratch file
 
 
@@ -163,6 +165,7 @@ func _new_match() -> void:
 	_best_combo = 0
 	_rounds_lost = 0
 	_progress_recorded = false
+	_daily_events = []
 	_match_over_frames = 0
 	_prev_winner = -1
 	_last_event_frame = 0
@@ -310,8 +313,16 @@ func _record_progress() -> void:
 	var arcade: Dictionary = selection.get("arcade", {})
 	if won and not arcade.is_empty() and int(arcade.index) >= (arcade.ladder as Array).size() - 1:
 		profile.record_arcade_clear(fighter_id)
+	# Daily challenge progress from this match.
+	var daily_done := Challenges.record(profile, "combo", _best_combo)
+	for ev in _daily_events:
+		daily_done = Challenges.record(profile, str(ev[0]), int(ev[1])) or daily_done
+	if won:
+		daily_done = Challenges.record(profile, "win") or daily_done
+		daily_done = Challenges.record(profile, "win_as", 1, fighter_id) or daily_done
 	profile.save()
 	var line := "+%d XP   LEVEL %d" % [result.xp, result.level]
+	if daily_done: line = "DAILY CHALLENGE COMPLETE! +%d XP   ·   " % Challenges.XP_REWARD + line
 	if result.level_up: line = "LEVEL UP!   " + line
 	if online.is_empty(): line += "   ·   R: REPLAY"
 	_show_callout(line, 420)
@@ -408,6 +419,8 @@ func _round_presentation() -> void:
 			if state[b + L.F_HP] * 4 < state[b + L.F_HP_MAX]: low = true
 		audio.set_music_state(&"fight_low_health" if low else &"fight")
 	var winner := state[L.H_WINNER]
+	if winner >= 0 and _prev_winner < 0 and winner == local_slot and state[L.base(local_slot) + L.F_HP] == state[L.base(local_slot) + L.F_HP_MAX]:
+		_daily_events.append(["perfect_round", 1])
 	if winner >= 0 and _prev_winner < 0:
 		_show_banner("K.O." if _any_ko() else "TIME", 90)
 	_prev_winner = winner
@@ -504,6 +517,7 @@ func _handle_events(events: PackedInt32Array) -> void:
 				if who == local_slot and not _replaying:
 					_damage_dealt += events[e + 3]
 					_best_combo = maxi(_best_combo, state[L.base(who) + L.F_COMBO])
+					if int(m.type) == 2: _daily_events.append(["super_hit", 1])
 				var heavy := int(m.damage) >= 600
 				_shake = maxf(_shake, 0.16 if heavy else 0.07)
 				if heavy: _zoom_punch = maxf(_zoom_punch, 0.35)
@@ -516,6 +530,7 @@ func _handle_events(events: PackedInt32Array) -> void:
 				_spark(who, moveset.moves[events[e + 2]], Color(0.45, 0.75, 1.0), 0.3)
 				audio.play_sfx(&"guard_hit")
 			L.EV_COUNTER:
+				if who == local_slot: _daily_events.append(["counter", 1])
 				_show_banner("PUNISH COUNTER!" if events[e + 3] == 2 else "COUNTER!", 35)
 				_shake = maxf(_shake, 0.2)
 			L.EV_LAUNCH:
@@ -549,10 +564,12 @@ func _handle_events(events: PackedInt32Array) -> void:
 				_show_callout(str(moveset.moves[events[e + 2]].display_name).to_upper(), 70)
 				audio.play_sfx(&"special_ready")
 			L.EV_PARRY:
+				if who == local_slot: _daily_events.append(["parry", 1])
 				_show_callout("PERFECT PARRY!" if events[e + 2] == 1 else "PARRY", 35)
 				_spark_at(who, Color(0.4, 1.0, 0.75), 0.6)
 				audio.play_sfx(&"guard_hit")
 			L.EV_THROW:
+				if who == local_slot: _daily_events.append(["throw", 1])
 				_show_callout("THROW", 30)
 				_shake = maxf(_shake, 0.18)
 				audio.play_sfx(&"kick_hit")
@@ -560,6 +577,7 @@ func _handle_events(events: PackedInt32Array) -> void:
 				_show_callout("TECH!", 30)
 				audio.play_sfx(&"guard_hit")
 			L.EV_WALL:
+				if who != local_slot: _daily_events.append(["wall", 1])
 				_show_callout("WALL SPLAT!", 40)
 				_shake = maxf(_shake, 0.3)
 			L.EV_ARMOR:
