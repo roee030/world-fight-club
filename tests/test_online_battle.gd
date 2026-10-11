@@ -23,6 +23,7 @@ func _fail(message: String) -> void:
 
 
 func _run() -> void:
+	load("res://present/battle_view.gd").profile_path = "user://test_scratch_profile.json"
 	var relay = Relay.new()
 	root.add_child(relay)
 	if relay.start(PORT) != OK:

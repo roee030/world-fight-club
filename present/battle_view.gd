@@ -19,6 +19,7 @@ const VirtualStickScript = preload("res://scripts/virtual_stick.gd")
 const TouchButtonScript = preload("res://scripts/touch_action_button.gd")
 const SlantBar = preload("res://scripts/hud/slant_bar.gd")
 const Replay = preload("res://sim/replay.gd")
+const Profile = preload("res://meta/profile.gd")
 const LAST_REPLAY := "user://replays/last.json"
 const Session = preload("res://net/rollback_session.gd")
 const CharacterLoader = preload("res://content/character_loader.gd")
@@ -92,6 +93,11 @@ var _hint: Label
 var replay := Replay.new()
 var _replaying := false
 var _replay_frame := 0
+var _damage_dealt := 0
+var _best_combo := 0
+var _rounds_lost := 0
+var _progress_recorded := false
+static var profile_path := Profile.PATH   # tests point this at a scratch file
 
 
 func _ready() -> void:
@@ -135,13 +141,22 @@ func _new_match() -> void:
 	state = Sim.new_match(moveset, defs, seed_value, options)
 	replay.start(defs, seed_value, options)
 	_replaying = false
-	cpu = CpuPilot.new(2, seed_value)
+	var arcade: Dictionary = selection.get("arcade", {})
+	cpu = CpuPilot.new(int(arcade.get("level", 2)), seed_value)
+	_damage_dealt = 0
+	_best_combo = 0
+	_rounds_lost = 0
+	_progress_recorded = false
 	_match_over_frames = 0
 	_prev_winner = -1
 	_last_event_frame = 0
 	if not online.is_empty():
 		session = Session.new(moveset, state, local_slot, 2)
-	_show_banner("ROUND 1", 60)
+	var arcade_info: Dictionary = selection.get("arcade", {})
+	if not arcade_info.is_empty():
+		_show_banner("ARCADE %d / %d" % [int(arcade_info.index) + 1, (arcade_info.ladder as Array).size()], 70)
+	else:
+		_show_banner("ROUND 1", 60)
 	if audio != null: _announce_round(1)
 
 
@@ -267,6 +282,43 @@ func _step_online() -> void:
 	session.events_out.clear()
 
 
+func _record_progress() -> void:
+	_progress_recorded = true
+	var won := state[L.H_WINNER] == local_slot
+	var perfect := won and state[L.H_WINS + (1 - local_slot)] == 0 and state[L.base(local_slot) + L.F_HP] == state[L.base(local_slot) + L.F_HP_MAX]
+	var profile = Profile.load_profile(profile_path)
+	var fighter_id := str(selection.get("p1", {}).get("id", "atlas"))
+	var result: Dictionary = profile.record_match(fighter_id, won, _damage_dealt, _best_combo, perfect)
+	var arcade: Dictionary = selection.get("arcade", {})
+	if won and not arcade.is_empty() and int(arcade.index) >= (arcade.ladder as Array).size() - 1:
+		profile.record_arcade_clear(fighter_id)
+	profile.save()
+	var line := "+%d XP   LEVEL %d" % [result.xp, result.level]
+	if result.level_up: line = "LEVEL UP!   " + line
+	if online.is_empty(): line += "   ·   R: REPLAY"
+	_show_callout(line, 420)
+
+
+## Arcade: a win moves to the next rival, a loss retries; returns true if handled.
+func _advance_arcade() -> bool:
+	var arcade: Dictionary = selection.get("arcade", {})
+	if arcade.is_empty():
+		return false
+	var ladder: Array = arcade.ladder
+	var index := int(arcade.index)
+	var won := state[L.H_WINNER] == local_slot
+	if won and index >= ladder.size() - 1:
+		_show_banner("ARCADE CLEAR!", 240)
+		pending_selection = {}
+		get_tree().change_scene_to_file("res://scenes/battle/select.tscn")
+		return true
+	var next := index + 1 if won else index
+	var step: Dictionary = ladder[next]
+	pending_selection = {"p1": selection.p1, "p2": step.rival, "stage": selection.get("stage", STAGE_ART), "arcade": {"ladder": ladder, "index": next, "level": step.level}}
+	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
+	return true
+
+
 ## Watch the recorded match again from its first frame (inputs only, deterministic).
 func start_replay() -> void:
 	state = replay.initial_state(moveset)
@@ -332,9 +384,11 @@ func _round_presentation() -> void:
 			if online.is_empty() and not training and replay.frames() > 0 and replay.final_hash == "":
 				replay.final_hash = Sim.state_hash(state)
 				replay.save(LAST_REPLAY)
-				_show_callout("PRESS R TO WATCH THE REPLAY", 400)
+			if not training and not _replaying and not _progress_recorded:
+				_record_progress()
 		if _match_over_frames >= 520 and online.is_empty() and not _replaying:
-			_new_match()
+			if not _advance_arcade():
+				_new_match()
 
 
 func _process(delta: float) -> void:
@@ -416,6 +470,9 @@ func _handle_events(events: PackedInt32Array) -> void:
 		match kind:
 			L.EV_HIT:
 				var m: Dictionary = moveset.moves[events[e + 2]]
+				if who == local_slot and not _replaying:
+					_damage_dealt += events[e + 3]
+					_best_combo = maxi(_best_combo, state[L.base(who) + L.F_COMBO])
 				var heavy := int(m.damage) >= 600
 				_shake = maxf(_shake, 0.16 if heavy else 0.07)
 				if heavy: _zoom_punch = maxf(_zoom_punch, 0.35)
@@ -643,7 +700,8 @@ func _build_hud() -> void:
 		pip.offset_top = 50
 		pip.offset_bottom = 74
 		_round_pips.append(pip)
-		var combo := _label(root, "", 30, HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_RIGHT)
+		var combo := _label(root, "", 44, HORIZONTAL_ALIGNMENT_LEFT if i == 0 else HORIZONTAL_ALIGNMENT_RIGHT)
+		combo.pivot_offset = Vector2(0 if i == 0 else 480, 40)
 		combo.anchor_left = 0.04 if i == 0 else 0.6
 		combo.anchor_right = 0.4 if i == 0 else 0.96
 		combo.offset_top = 150
@@ -782,7 +840,14 @@ func _update_hud() -> void:
 		if state[b + L.F_HITS_TAKEN] == 0 or _hp_trails[i].value < state[b + L.F_HP]:
 			_hp_trails[i].value = move_toward(_hp_trails[i].value, state[b + L.F_HP], 45.0)
 		var combo := state[b + L.F_COMBO]
-		_combo_labels[i].text = ("%d HITS\n%d DMG" % [combo, state[b + L.F_COMBO_DAMAGE]]) if combo >= 2 else ""
+		var text := ("%d HITS\n%d DMG" % [combo, state[b + L.F_COMBO_DAMAGE]]) if combo >= 2 else ""
+		if text != _combo_labels[i].text and combo >= 2:
+			# Each new hit pops the counter; long combos turn hotter.
+			_combo_labels[i].scale = Vector2.ONE * 1.35
+			var heat := clampf((combo - 2) / 8.0, 0.0, 1.0)
+			_combo_labels[i].add_theme_color_override("font_color", Color("#ffd75a").lerp(Color("#ff4a2a"), heat))
+		_combo_labels[i].text = text
+		_combo_labels[i].scale = _combo_labels[i].scale.lerp(Vector2.ONE, 0.25)
 		_round_pips[i].text = "* ".repeat(state[L.H_WINS + i]).strip_edges()
 	_timer_label.text = str(int(ceil(state[L.H_TIMER] / 60.0)))
 	_mode_label.text = "EASY  (TAB)" if easy_controls else "PRO  (TAB)"

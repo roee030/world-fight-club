@@ -17,6 +17,7 @@ func _fail(message: String) -> void:
 
 
 func _run() -> void:
+	load("res://present/battle_view.gd").profile_path = "user://test_scratch_profile.json"
 	var select = (load("res://scenes/battle/select.tscn") as PackedScene).instantiate()
 	root.add_child(select)
 	for f in range(4): await process_frame

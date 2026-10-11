@@ -7,6 +7,7 @@ const Loader = preload("res://content/character_loader.gd")
 const CharacterView = preload("res://present/character_view.gd")
 const Battle = preload("res://present/battle_view.gd")
 const PrivateRoster = preload("res://scripts/private_roster.gd")
+const Profile = preload("res://meta/profile.gd")
 const STAGES := [
 	{"name": "UNDERPASS", "art": "res://assets/stages/kaplan-junction-arena.jpg"},
 	{"name": "NEWSROOM", "art": "res://assets/stages/hatzinor-studio-arena.png"},
@@ -97,6 +98,7 @@ func _ready() -> void:
 	row.add_child(_button("RIVAL >", func(): _cycle(1, 1)))
 	row.add_child(_button("STAGE", func(): _stage = (_stage + 1) % STAGES.size(); _refresh()))
 	row.add_child(_button("FIGHT!", _start))
+	row.add_child(_button("ARCADE", _start_arcade))
 	row.add_child(_button("BACK", func(): get_tree().change_scene_to_file("res://scenes/main.tscn")))
 	_labels["stage"] = _label("", 18, Vector2.ZERO, Vector2.ZERO)
 	_labels.stage.anchor_left = 0.0
@@ -105,7 +107,22 @@ func _ready() -> void:
 	_labels.stage.anchor_bottom = 0.9
 	_labels.stage.offset_bottom = 30
 	_labels.stage.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var profile = Profile.load_profile()
+	var stats := _label("LEVEL %d  ·  %s  ·  %dW %dL  ·  BEST COMBO %d" % [profile.level(), profile.data.title, int(profile.data.wins), int(profile.data.losses), int(profile.data.best_combo)], 16, Vector2.ZERO, Vector2.ZERO)
+	stats.anchor_top = 0.94
+	stats.anchor_bottom = 0.94
+	stats.offset_bottom = 28
+	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats.add_theme_color_override("font_color", Color("#9fe8ff"))
 	_refresh()
+
+
+func _start_arcade() -> void:
+	var ladder: Array = Profile.arcade_ladder(fighters, str(fighters[_player].id))
+	if ladder.is_empty():
+		return
+	Battle.pending_selection = {"p1": fighters[_player], "p2": ladder[0].rival, "stage": STAGES[_stage].art, "arcade": {"ladder": ladder, "index": 0, "level": ladder[0].level}}
+	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
 
 
 func _cycle(side: int, step: int) -> void:

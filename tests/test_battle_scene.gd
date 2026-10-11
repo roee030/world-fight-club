@@ -16,6 +16,7 @@ func _fail(message: String) -> void:
 
 
 func _run() -> void:
+	load("res://present/battle_view.gd").profile_path = "user://test_scratch_profile.json"
 	var battle = (load("res://scenes/battle/battle.tscn") as PackedScene).instantiate()
 	battle.cpu_controls_player = true
 	root.add_child(battle)
