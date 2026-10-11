@@ -36,6 +36,7 @@ func decide(s: PackedInt32Array, me: int, moveset) -> int:
 	if not _plan.is_empty():
 		return _plan.pop_front()
 	var opp_state := s[o + L.F_STATE]
+	var style: String = moveset.archetypes[s[b + L.F_ARCHETYPE]] if "archetypes" in moveset else "universal"
 	var has_super := s[b + L.F_SUPER] >= 10000
 	var drive_ok := s[b + L.F_BURNOUT] == 0 and s[b + L.F_DRIVE] > 15000
 	# Incoming projectile: parry it, jump it or block it.
@@ -71,10 +72,19 @@ func decide(s: PackedInt32Array, me: int, moveset) -> int:
 			_queue([L.IN_DOWN | L.IN_HP], 1)
 			_queue([L.IN_DOWN], 4)
 		return _plan.pop_front()
+	# Archetype tactics.
+	if style == "grappler" and dist < 12500 and opp_state in [L.S_BLOCKSTUN, L.S_IDLE, L.S_CROUCH, L.S_WALK_B] and rng.randf() < 0.05 * level:
+		_queue([L.IN_SP | toward], 1)   # Iron Hug: beats a turtling rival
+		_cooldown = 30
+		return _plan.pop_front()
+	if style == "rushdown" and dist > 13000 and dist < 22000 and rng.randf() < 0.035 * level:
+		_queue([L.IN_SP], 1)            # Lightning Dash closes the gap
+		_cooldown = 24
+		return _plan.pop_front()
 	if _cooldown > 0:
 		_cooldown -= 1
 		return toward if dist > 11500 else 0
-	if dist > 20000 and s[b + L.F_PROJECTILE_OUT] == 0 and rng.randf() < 0.05 * level:
+	if style == "universal" and dist > 20000 and s[b + L.F_PROJECTILE_OUT] == 0 and rng.randf() < 0.05 * level:
 		_queue([L.IN_SP], 1)
 		_cooldown = 30
 		return _plan.pop_front()
