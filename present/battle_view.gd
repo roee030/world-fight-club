@@ -20,6 +20,7 @@ const TouchButtonScript = preload("res://scripts/touch_action_button.gd")
 const SlantBar = preload("res://scripts/hud/slant_bar.gd")
 const Replay = preload("res://sim/replay.gd")
 const Profile = preload("res://meta/profile.gd")
+const PauseMenu = preload("res://present/pause_menu.gd")
 const LAST_REPLAY := "user://replays/last.json"
 const Session = preload("res://net/rollback_session.gd")
 const CharacterLoader = preload("res://content/character_loader.gd")
@@ -88,7 +89,9 @@ var _callout: Label
 var _callout_time := 0
 var _zoom_punch := 0.0
 var _slowmo := 0.0
-var _beams: Array = []   # per fighter: MeshInstance3D or null
+var _beams: Array = []
+var paused := false
+var _pause_menu: Control   # per fighter: MeshInstance3D or null
 var _touch_buttons: Dictionary = {}   # input bit -> button
 var _hint: Label
 var replay := Replay.new()
@@ -121,6 +124,14 @@ func _ready() -> void:
 		local_slot = int(online.player)
 		online.client.packet_received.connect(func(packet: Dictionary): _inbox.append(packet))
 		online.client.opponent_left.connect(func(): _show_banner("OPPONENT LEFT", 600))
+	var pause_layer := CanvasLayer.new()
+	pause_layer.layer = 5
+	add_child(pause_layer)
+	_pause_menu = PauseMenu.new()
+	pause_layer.add_child(_pause_menu)
+	_pause_menu.setup()
+	_pause_menu.resumed.connect(func(): set_paused(false))
+	_pause_menu.quit_requested.connect(_quit_to_menu)
 	_overlay = TrainingOverlay.new()
 	add_child(_overlay)
 	_overlay.setup(_hud_root)
@@ -242,6 +253,8 @@ func _build_world() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if paused:
+		return
 	if not online.is_empty():
 		_step_online()
 	else:
@@ -321,6 +334,22 @@ func _advance_arcade() -> bool:
 	pending_selection = {"p1": selection.p1, "p2": step.rival, "stage": selection.get("stage", STAGE_ART), "arcade": {"ladder": ladder, "index": next, "level": step.level}}
 	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
 	return true
+
+
+func set_paused(value: bool) -> void:
+	paused = value
+	if paused:
+		var b := L.base(local_slot)
+		_pause_menu.show_for(moveset, state[b + L.F_ARCHETYPE], player_name)
+	else:
+		_pause_menu.visible = false
+
+
+func _quit_to_menu() -> void:
+	Engine.time_scale = 1.0
+	if not online.is_empty():
+		online.client.close()
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 
 ## Watch the recorded match again from its first frame (inputs only, deterministic).
@@ -436,9 +465,15 @@ func _read_keyboard() -> int:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		Engine.time_scale = 1.0
-		get_tree().change_scene_to_file("res://scenes/main.tscn")
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ESCAPE, KEY_P]:
+		# Online matches cannot pause (the opponent keeps playing); Esc there quits.
+		if not online.is_empty():
+			_quit_to_menu()
+		else:
+			set_paused(not paused)
+		return
+	if paused:
+		return
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F2 and online.is_empty():
 		training = not training
 		_overlay.set_active(training)
@@ -789,7 +824,7 @@ func _build_hud() -> void:
 	_callout.anchor_bottom = 0.2
 	_callout.offset_bottom = 50
 	_callout.add_theme_color_override("font_color", Color("#ffe27a"))
-	_hint = _label(root, "A/D move  W jump  S crouch  J/K punch  U/I kick  L special (+dir)  L+I super  O drive (hold parry, +fwd rush, +K impact)  J+U throw  back = block  Esc menu", 13, HORIZONTAL_ALIGNMENT_CENTER)
+	_hint = _label(root, "A/D move  W jump  S crouch  J/K punch  U/I kick  L special (+dir)  L+I super  O drive (hold parry, +fwd rush, +K impact)  J+U throw  back = block  Esc pause / move list", 13, HORIZONTAL_ALIGNMENT_CENTER)
 	_hint.anchor_left = 0.0
 	_hint.anchor_right = 1.0
 	_hint.anchor_top = 1.0
@@ -834,6 +869,17 @@ func _build_touch() -> void:
 		[L.IN_SP, "SP", "spark", Color("#c9a227"), Vector2(-70, 180)], [L.IN_DRIVE, "DRIVE", "shield", Color("#2fb36a"), Vector2(-70, 60)]]
 	if show and _hint != null:
 		_hint.visible = false   # keyboard help is noise on a phone
+	var pause_button := Button.new()
+	pause_button.text = "II"
+	pause_button.anchor_left = 0.5
+	pause_button.anchor_right = 0.5
+	pause_button.offset_left = 70
+	pause_button.offset_right = 130
+	pause_button.offset_top = 18
+	pause_button.offset_bottom = 66
+	pause_button.visible = show
+	pause_button.pressed.connect(func(): set_paused(true) if online.is_empty() else _quit_to_menu())
+	root.add_child(pause_button)
 	for entry in layout:
 		var button = TouchButtonScript.new()
 		pad.add_child(button)
