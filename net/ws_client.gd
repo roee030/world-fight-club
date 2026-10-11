@@ -11,12 +11,17 @@ signal failed(reason: String)
 
 var ws := WebSocketPeer.new()
 var room := ""
+var fighter := "atlas"
+var stage := ""
+var last_start: Dictionary = {}     # the relay's start message (slots, seed, fighters, stage)
 var _joined := false
 var _was_open := false
 
 
-func connect_to(url: String, room_code: String) -> Error:
+func connect_to(url: String, room_code: String, fighter_id: String = "atlas", stage_art: String = "") -> Error:
 	room = room_code.strip_edges().to_upper()
+	fighter = fighter_id
+	stage = stage_art
 	return ws.connect_to_url(url)
 
 
@@ -27,13 +32,15 @@ func poll() -> void:
 		_was_open = true
 		if not _joined:
 			_joined = true
-			ws.send_text(JSON.stringify({"op": "join", "room": room}))
+			ws.send_text(JSON.stringify({"op": "join", "room": room, "fighter": fighter, "stage": stage}))
 		while ws.get_available_packet_count() > 0:
 			var msg = JSON.parse_string(ws.get_packet().get_string_from_utf8())
 			if not msg is Dictionary:
 				continue
 			match str(msg.get("op", "")):
-				"start": started.emit(int(msg.player), int(msg.seed))
+				"start":
+					last_start = msg
+					started.emit(int(msg.player), int(msg.seed))
 				"waiting": waiting.emit()
 				"left": opponent_left.emit()
 				"full": failed.emit("room is full")

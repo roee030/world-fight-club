@@ -6,12 +6,16 @@ extends Control
 
 const WsClient = preload("res://net/ws_client.gd")
 const Battle = preload("res://present/battle_view.gd")
+const Loader = preload("res://content/character_loader.gd")
 const DEFAULT_RELAY := "ws://localhost:9080"
 
 var client: RefCounted
 var _url: LineEdit
 var _code: LineEdit
 var _status: Label
+var _fighters: Array = []
+var _pick := 0
+var _pick_label: Label
 
 
 func _ready() -> void:
@@ -37,6 +41,17 @@ func _ready() -> void:
 	_url = LineEdit.new()
 	_url.text = _configured_relay()
 	box.add_child(_url)
+	_fighters = Loader.fighter_definitions()
+	box.add_child(_text("YOUR FIGHTER", 13))
+	var pick_row := HBoxContainer.new()
+	pick_row.add_theme_constant_override("separation", 10)
+	box.add_child(pick_row)
+	pick_row.add_child(_button("<", func(): _cycle(-1)))
+	_pick_label = _text("", 24)
+	_pick_label.custom_minimum_size = Vector2(260, 0)
+	pick_row.add_child(_pick_label)
+	pick_row.add_child(_button(">", func(): _cycle(1)))
+	_cycle(0)
 	box.add_child(_text("ROOM CODE", 13))
 	_code = LineEdit.new()
 	_code.text = _random_code()
@@ -81,13 +96,35 @@ func _connect() -> void:
 	client.waiting.connect(func(): _status.text = "Room %s is open. Waiting for your friend..." % _code.text.to_upper())
 	client.failed.connect(func(reason: String): _status.text = "Connection problem: %s" % reason)
 	client.started.connect(_on_started)
-	var err: Error = client.connect_to(_url.text.strip_edges(), _code.text)
+	var err: Error = client.connect_to(_url.text.strip_edges(), _code.text, str(_fighters[_pick].id) if not _fighters.is_empty() else "atlas", "res://assets/stages/kaplan-junction-arena.jpg")
 	_status.text = "Connecting..." if err == OK else "Invalid server address."
 
 
 func _on_started(player: int, seed_value: int) -> void:
 	Battle.pending_online = {"client": client, "player": player, "seed": seed_value}
+	Battle.pending_selection = online_selection(client.last_start, _fighters)
 	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
+
+
+## Builds the battle selection from the relay's start message (slot order).
+static func online_selection(start: Dictionary, fighters: Array) -> Dictionary:
+	var picks: Array = start.get("fighters", ["atlas", "nova"])
+	var defs := []
+	for id in picks:
+		var found: Dictionary = fighters[0] if not fighters.is_empty() else {}
+		for def in fighters:
+			if str(def.id) == str(id):
+				found = def
+		defs.append(found)
+	var stage := str(start.get("stage", ""))
+	return {"p1": defs[0], "p2": defs[1], "stage": stage if stage != "" else "res://assets/stages/kaplan-junction-arena.jpg"}
+
+
+func _cycle(step: int) -> void:
+	if _fighters.is_empty():
+		return
+	_pick = wrapi(_pick + step, 0, _fighters.size())
+	_pick_label.text = "%s  ·  %s" % [_fighters[_pick].name, str(_fighters[_pick].get("archetype", "")).to_upper()]
 
 
 static func _configured_relay() -> String:

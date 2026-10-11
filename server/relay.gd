@@ -6,8 +6,9 @@ extends Node
 ##
 ## Run:  godot --headless --path . --script res://server/relay_main.gd -- --port 9080
 ## Protocol (JSON text frames):
-##   client -> {"op": "join", "room": "ABCD"}
-##   server -> {"op": "waiting"} | {"op": "start", "player": 0|1, "seed": n} | {"op": "full"}
+##   client -> {"op": "join", "room": "ABCD", "fighter": "atlas", "stage": "<art path>"}
+##   server -> {"op": "waiting"} | {"op": "full"}
+##          |  {"op": "start", "player": 0|1, "seed": n, "fighters": [slot0, slot1], "stage": <slot 0's stage>}
 ##   client -> {"op": "input", ...}       forwarded verbatim to the other player
 ##   server -> {"op": "left"}              when the opponent disconnects
 
@@ -78,11 +79,13 @@ func _handle(ws: WebSocketPeer, msg: Dictionary, raw: String) -> void:
 			return
 		members.append(ws)
 		_rooms[room] = members
-		_clients[ws] = {"room": room, "slot": members.size() - 1}
+		_clients[ws] = {"room": room, "slot": members.size() - 1, "fighter": str(msg.get("fighter", "atlas")).left(32), "stage": str(msg.get("stage", "")).left(128)}
 		if members.size() == 2:
 			_seed += 1
+			var picks := [str(_clients[members[0]].fighter), str(_clients[members[1]].fighter)]
+			var stage := str(_clients[members[0]].stage)
 			for slot in range(2):
-				_send(members[slot], {"op": "start", "player": slot, "seed": _seed})
+				_send(members[slot], {"op": "start", "player": slot, "seed": _seed, "fighters": picks, "stage": stage})
 			log_line.emit("room %s started" % room)
 		else:
 			_send(ws, {"op": "waiting"})

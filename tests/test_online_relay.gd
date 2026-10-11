@@ -38,7 +38,7 @@ func _run() -> void:
 		var index := k
 		clients[k].started.connect(func(player: int, seed_value: int): starts[index] = player; seeds[index] = seed_value)
 		clients[k].packet_received.connect(func(packet: Dictionary): inbox[index].append(packet))
-		clients[k].connect_to("ws://127.0.0.1:%d" % PORT, "test")
+		clients[k].connect_to("ws://127.0.0.1:%d" % PORT, "test", ["nova", "titan"][k])
 	for wait in range(300):
 		await process_frame
 		for c in clients: c.poll()
@@ -47,6 +47,12 @@ func _run() -> void:
 		return _fail("relay did not start the match (%s)" % [starts])
 	if starts[0] == starts[1] or seeds[0] != seeds[1]:
 		return _fail("players must get different slots and the same seed")
+	var picks: Array = clients[0].last_start.get("fighters", [])
+	if picks != clients[1].last_start.get("fighters", []) or picks.size() != 2 or not ("nova" in picks and "titan" in picks):
+		return _fail("both players must receive both fighter picks in slot order (%s)" % [picks])
+	var slot_of_nova: int = starts[0]
+	if picks[slot_of_nova] != "nova":
+		return _fail("each pick must sit at its player's slot")
 	for k in range(2):
 		var initial := Sim.new_match(ms, [{"x": -8000}, {"x": 8000}], seeds[k])
 		sessions[k] = Session.new(ms, initial, starts[k], 2)
