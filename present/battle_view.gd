@@ -18,6 +18,8 @@ const AudioManagerScript = preload("res://scripts/audio/audio_manager.gd")
 const VirtualStickScript = preload("res://scripts/virtual_stick.gd")
 const TouchButtonScript = preload("res://scripts/touch_action_button.gd")
 const SlantBar = preload("res://scripts/hud/slant_bar.gd")
+const Replay = preload("res://sim/replay.gd")
+const LAST_REPLAY := "user://replays/last.json"
 const Session = preload("res://net/rollback_session.gd")
 const CharacterLoader = preload("res://content/character_loader.gd")
 const TrainingOverlay = preload("res://present/training_overlay.gd")
@@ -87,6 +89,9 @@ var _zoom_punch := 0.0
 var _slowmo := 0.0
 var _touch_buttons: Dictionary = {}   # input bit -> button
 var _hint: Label
+var replay := Replay.new()
+var _replaying := false
+var _replay_frame := 0
 
 
 func _ready() -> void:
@@ -123,9 +128,13 @@ func _new_match() -> void:
 	# In online play both fighters use the same control rules (Easy auto-combos on).
 	var stats0: Dictionary = selection.get("p1", {}).get("stats", {})
 	var stats1: Dictionary = selection.get("p2", {}).get("stats", {})
-	state = Sim.new_match(moveset, [
+	var defs := [
 		{"x": -16000, "hp": int(stats0.get("hp", 10000)), "walk": int(stats0.get("walk", 541)), "easy": easy_controls or not online.is_empty(), "archetype": str(selection.get("p1", {}).get("moveset", "universal"))},
-		{"x": 16000, "hp": int(stats1.get("hp", 10000)), "walk": int(stats1.get("walk", 541)), "easy": true, "archetype": str(selection.get("p2", {}).get("moveset", "universal"))}], seed_value, {"intro": true, "rounds_to_win": 2})
+		{"x": 16000, "hp": int(stats1.get("hp", 10000)), "walk": int(stats1.get("walk", 541)), "easy": true, "archetype": str(selection.get("p2", {}).get("moveset", "universal"))}]
+	var options := {"intro": true, "rounds_to_win": 2}
+	state = Sim.new_match(moveset, defs, seed_value, options)
+	replay.start(defs, seed_value, options)
+	_replaying = false
 	cpu = CpuPilot.new(2, seed_value)
 	_match_over_frames = 0
 	_prev_winner = -1
@@ -225,6 +234,14 @@ func _physics_process(_delta: float) -> void:
 		else:
 			inputs[0] = cpu.decide(state, 0, moveset) if cpu_controls_player else _read_keyboard()
 			inputs[1] = _dummy_input() if training else cpu.decide(state, 1, moveset)
+		if _replaying:
+			inputs = replay.inputs_at(_replay_frame)
+			_replay_frame += 1
+			if _replay_frame >= replay.frames():
+				_replaying = false
+				_show_banner("REPLAY END", 90)
+		elif not training:
+			replay.record(inputs)
 		var events := Sim.step(moveset, state, inputs)
 		_handle_events(events)
 		if training:
@@ -248,6 +265,16 @@ func _step_online() -> void:
 			_handle_events(entry[1])
 			_last_event_frame = int(entry[0])
 	session.events_out.clear()
+
+
+## Watch the recorded match again from its first frame (inputs only, deterministic).
+func start_replay() -> void:
+	state = replay.initial_state(moveset)
+	_replaying = true
+	_replay_frame = 0
+	_match_over_frames = 0
+	_prev_winner = -1
+	_show_banner("REPLAY", 60)
 
 
 func _dummy_input() -> int:
@@ -302,7 +329,11 @@ func _round_presentation() -> void:
 		_match_over_frames += 1
 		if _match_over_frames == 100:
 			_show_banner("YOU WIN" if state[L.H_WINNER] == local_slot else "YOU LOSE", 200)
-		if _match_over_frames >= 320 and online.is_empty():
+			if online.is_empty() and not training and replay.frames() > 0 and replay.final_hash == "":
+				replay.final_hash = Sim.state_hash(state)
+				replay.save(LAST_REPLAY)
+				_show_callout("PRESS R TO WATCH THE REPLAY", 400)
+		if _match_over_frames >= 520 and online.is_empty() and not _replaying:
 			_new_match()
 
 
@@ -362,6 +393,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			state[L.base(i) + L.F_DRIVE] = int(moveset.rules.drive_max)
 			state[L.base(i) + L.F_BURNOUT] = 0
 		_show_callout("METERS FULL", 40)
+	if event is InputEventKey and event.pressed and event.keycode == KEY_R and online.is_empty() and replay.final_hash != "" and not _replaying:
+		start_replay()
 	if event is InputEventKey and event.pressed and event.keycode == KEY_TAB:
 		easy_controls = not easy_controls
 		var b := L.base(0)
