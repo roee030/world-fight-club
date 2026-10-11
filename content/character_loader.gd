@@ -22,7 +22,10 @@ static func fighter_definitions() -> Array:
 		for file in dir.get_files():
 			if file.ends_with(".json"):
 				var parsed = JSON.parse_string(FileAccess.get_file_as_string(dir_path + "/" + file))
-				if parsed is Dictionary and parsed.has("model"):
+				# A published sprite bridge is permitted while the complete per-character
+				# GLB is being produced. It remains a full fighter asset, never a face
+				# pasted onto the shared mannequin.
+				if parsed is Dictionary and (parsed.has("model") or parsed.has("sprite_frames")):
 					out.append(parsed)
 	out.sort_custom(func(a, b): return str(a.get("order", a.id)) < str(b.get("order", b.id)))
 	return out

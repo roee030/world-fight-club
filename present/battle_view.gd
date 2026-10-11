@@ -251,19 +251,22 @@ func _build_world() -> void:
 	for i in range(fighter_defs.size()):
 		var def: Dictionary = fighter_defs[i]
 		var private_id := ""
+		var sprite_prefix := str(def.get("sprite_frames", ""))
+		var sprite_height := float(def.get("sprite_height_m", 1.8))
 		if bool(def.get("private", false)):
 			private_id = str(def.id)
 		elif i == 0 and use_private_fighter and _direct_launch and not PrivateRoster.ids().is_empty():
 			private_id = str(PrivateRoster.ids()[0])
-		if private_id != "":
+		if private_id != "" or sprite_prefix != "":
 			var paths: Array = []
 			for frame in range(12):
-				paths.append(PrivateRoster.sprite_path(private_id, frame))
+				paths.append(PrivateRoster.sprite_path(private_id, frame) if private_id != "" else "%s-%d.png" % [sprite_prefix, frame])
 			var sprite_view := SpriteView.new()
 			add_child(sprite_view)
-			sprite_view.setup_frames(paths, float(PrivateRoster.info(private_id).get("height_m", 1.8)))
+			if private_id != "": sprite_height = float(PrivateRoster.info(private_id).get("height_m", 1.8))
+			sprite_view.setup_frames(paths, sprite_height)
 			views.append(sprite_view)
-			if i == 0: player_name = str(PrivateRoster.info(private_id).get("name", private_id)).to_upper()
+			if i == 0: player_name = str(PrivateRoster.info(private_id).get("name", private_id) if private_id != "" else def.get("name", "YOU")).to_upper()
 			continue
 		var view := CharacterView.new()
 		add_child(view)

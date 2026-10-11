@@ -5,6 +5,7 @@ extends Control
 
 const Loader = preload("res://content/character_loader.gd")
 const CharacterView = preload("res://present/character_view.gd")
+const SpriteView = preload("res://present/sprite_view.gd")
 const Battle = preload("res://present/battle_view.gd")
 const PrivateRoster = preload("res://scripts/private_roster.gd")
 const Profile = preload("res://meta/profile.gd")
@@ -188,7 +189,15 @@ func _refresh() -> void:
 		if _preview_views[side] != null:
 			_preview_views[side].queue_free()
 			_preview_views[side] = null
-		if not bool(def.get("private", false)):
+		var sprite_prefix := str(def.get("sprite_frames", ""))
+		if sprite_prefix != "":
+			var sprite_view := SpriteView.new()
+			var paths: Array = []
+			for frame in range(12): paths.append("%s-%d.png" % [sprite_prefix, frame])
+			_viewports[side].add_child(sprite_view)
+			sprite_view.setup_frames(paths, float(def.get("sprite_height_m", 1.8)))
+			_preview_views[side] = sprite_view
+		elif not bool(def.get("private", false)):
 			var view := CharacterView.new()
 			_viewports[side].add_child(view)
 			var tint: Array = def.get("tint", [1, 1, 1])

@@ -1,0 +1,11 @@
+{
+  "_doc": "Bibi joins the deterministic 3D battle through the approved sprite bridge until a complete, rigged Bibi GLB is delivered. This is not a generic-body substitute.",
+  "id": "bibi",
+  "order": "5",
+  "name": "BIBI",
+  "archetype": "all-rounder",
+  "moveset": "universal",
+  "sprite_frames": "res://assets/characters/sprites/bibi",
+  "sprite_height_m": 1.81,
+  "stats": {"hp": 10400, "walk": 520}
+}
