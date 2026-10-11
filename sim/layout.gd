@@ -89,6 +89,7 @@ const F_START_X := 63       # spawn position, restored every round
 const F_ARCHETYPE := 64     # moveset archetype index (Moveset.archetypes)
 const F_MOVE_HITS := 65     # hits landed (or blocked) by the current multi-hit move
 const F_POWER := 66         # damage percent from the fighter's stat build (100 = standard)
+const F_LAST_HIT_MOVE := 67 # move index of the last strike that hit this fighter (presentation)
 const FIGHTER := 72
 
 # Projectiles live after the fighter blocks.

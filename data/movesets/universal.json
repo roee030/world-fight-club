@@ -365,7 +365,7 @@
       "button": "P",
       "easy": "N",
       "name": "Energy Wave",
-      "anim": "cross",
+      "anim": "spell",
       "startup": 13,
       "active": 1,
       "recovery": 28,

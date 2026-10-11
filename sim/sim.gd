@@ -698,9 +698,9 @@ static func _finish_throw(moveset, r: Dictionary, s: PackedInt32Array, thrower: 
 	s[tb + L.F_VX] = s[b + L.F_FACING] * int(m.launch_vx)
 	s[tb + L.F_VY] = int(m.launch_vy)
 	s[tb + L.F_Y] = 1
-	s[b + L.F_MOVE] = -1
-	s[b + L.F_MOVE_CONNECT] = 0
-	_enter(s, b, L.S_IDLE)
+	# The thrower stays in the throw state (connect 4 = tossing) until the move's
+	# recovery ends, so the toss is seen and the throw has a real recovery.
+	s[b + L.F_MOVE_CONNECT] = 4
 	s[b + L.F_HITSTOP] = int(m.hitstop)
 	_emit(events, L.EV_THROW, thrower, move, damage)
 	_check_ko(s, b, tb, victim, thrower, events)
@@ -973,6 +973,7 @@ static func _apply_hit(moveset, r: Dictionary, s: PackedInt32Array, a: int, d: i
 	s[bd + L.F_HP] = maxi(0, s[bd + L.F_HP] - damage)
 	s[bd + L.F_HITS_TAKEN] = taken + 1
 	s[bd + L.F_COUNTER] = 1 if counter else 0
+	s[bd + L.F_LAST_HIT_MOVE] = move
 	s[ba + L.F_COMBO] = taken + 1
 	s[ba + L.F_COMBO_DAMAGE] = (s[ba + L.F_COMBO_DAMAGE] if taken > 0 else 0) + damage
 	if not projectile:

@@ -201,7 +201,13 @@ func show_state(s: PackedInt32Array, i: int, moveset) -> void:
 			arm_r = 1.0
 			guard = false
 		L.S_HITSTUN:
-			_sample("Hit_Chest" if s[b + L.F_HITS_TAKEN] % 2 == 1 else "Hit_Head", minf(0.32, sf * 0.03))
+			# Reaction follows what hit: high strikes snap the head, body blows fold the chest.
+			var last := s[b + L.F_LAST_HIT_MOVE]
+			var head := true
+			if last >= 0 and last < moveset.moves.size():
+				var hm: Dictionary = moveset.moves[last]
+				head = int(hm.level) in [0, 3] or int(hm.hitbox[1]) >= 10000
+			_sample("Hit_Head" if head else "Hit_Chest", minf(0.32 if head else 0.3, sf * 0.03))
 			guard = false
 		L.S_LAUNCHED:
 			_sample("Hit_Knockback", minf(0.45, sf * 0.025))
@@ -226,11 +232,15 @@ func show_state(s: PackedInt32Array, i: int, moveset) -> void:
 		L.S_RUSH:
 			_play("Sprint", 1.4)
 		L.S_THROW:
-			_play("Idle")
-			_set_target("hand_l", Vector3(0.12, 1.3, 0.62))
-			_set_target("hand_r", Vector3(-0.12, 1.3, 0.62))
-			arm_l = 1.0
-			arm_r = 1.0
+			if s[b + L.F_MOVE_CONNECT] == 4:
+				# Toss: the overhand throw clip, sampled from the grab moment on.
+				_sample("OverhandThrow", minf(1.3, 0.35 + sf * 0.03))
+			else:
+				_play("Idle")
+				_set_target("hand_l", Vector3(0.12, 1.3, 0.62))
+				_set_target("hand_r", Vector3(-0.12, 1.3, 0.62))
+				arm_l = 1.0
+				arm_r = 1.0
 			guard = false
 		L.S_THROWN:
 			_sample("Hit_Chest", 0.12)
@@ -247,8 +257,8 @@ func show_state(s: PackedInt32Array, i: int, moveset) -> void:
 				var high := Vector3(-0.05, 2.05, 0.35)
 				_set_target("hand_r", low.lerp(high, minf(p, 1.0)) if p <= 1.0 else high.lerp(low, (p - 1.0) * 0.6))
 				arm_r = 1.0
-			elif posture == 0 and anim in ["jab", "cross"]:
-				var clip := "Punch_Jab" if anim == "jab" else "Punch_Cross"
+			elif posture == 0 and anim in ["jab", "cross", "spell"]:
+				var clip := "Punch_Jab" if anim == "jab" else ("Spell_Simple_Shoot" if anim == "spell" else "Punch_Cross")
 				_sample(clip, _warp(clip, m, sf))
 				guard = false
 			elif anim == "kick":
